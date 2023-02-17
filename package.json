@@ -1,0 +1,29 @@
+{
+  "name": "cocreate-backend",
+  "version": "1.0.0",
+  "description": "/",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdp-cocreate/cocreate-backend.git"
+  },
+  "keywords": [
+    "nest",
+    "api"
+  ],
+  "author": "Edgar Cresson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mdp-cocreate/cocreate-backend/issues"
+  },
+  "homepage": "https://github.com/mdp-cocreate/cocreate-backend#readme",
+  "dependencies": {
+    "@nestjs/common": "^9.3.9",
+    "@nestjs/core": "^9.3.9",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0"
+  }
+}
