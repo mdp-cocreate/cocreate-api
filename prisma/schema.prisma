@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id             Int                 @id @default(autoincrement())
+  email          String              @unique
+  password       String
+  firstName      String
+  lastName       String
+  country        String?
+  profilePicture Bytes?
+  registeredAt   DateTime            @default(now())
+  projects       ProjectsToMembers[]
+  domains        Domains[]
+  contributions  ProjectItems[]
+  actions        Actions[]
+}
+
+model Projects {
+  id          Int                 @id @default(autoincrement())
+  name        String
+  description String              @db.Text
+  coverImage  Bytes?
+  public      Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  members     ProjectsToMembers[]
+  domains     Domains[]
+  items       ProjectItems[]
+  actions     Actions[]
+}
+
+model Domains {
+  id       Int        @id @default(autoincrement())
+  name     Domain     @unique
+  users    Users[]
+  projects Projects[]
+}
+
+model ProjectItems {
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String?  @db.Text
+  link           String?
+  associatedFile Bytes?
+  author         Users    @relation(fields: [authorId], references: [id])
+  authorId       Int
+  project        Projects @relation(fields: [projectId], references: [id])
+  projectId      Int
+}
+
+model ProjectsToMembers {
+  project   Projects @relation(fields: [projectId], references: [id])
+  projectId Int
+  user      Users    @relation(fields: [userId], references: [id])
+  userId    Int
+  role      Role     @default(READER)
+  addedAt   DateTime @default(now())
+
+  @@id([projectId, userId])
+}
+
+model Actions {
+  name      String
+  createdAt DateTime @default(now())
+  project   Projects @relation(fields: [projectId], references: [id])
+  projectId Int
+  user      Users    @relation(fields: [userId], references: [id])
+  userId    Int
+
+  @@id([projectId, userId])
+}
+
+enum Domain {
+  DEVELOPMENT
+  DESIGN
+  MARKETING
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  READER
+}
