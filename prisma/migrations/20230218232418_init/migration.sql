@@ -6,7 +6,7 @@ CREATE TABLE `Users` (
     `firstName` VARCHAR(191) NOT NULL,
     `lastName` VARCHAR(191) NOT NULL,
     `country` VARCHAR(191) NULL,
-    `profilePicture` LONGBLOB NOT NULL,
+    `profilePicture` LONGBLOB NULL,
     `registeredAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `Users_email_key`(`email`),

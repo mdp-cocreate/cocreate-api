@@ -2,30 +2,31 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const developmentDomain = await prisma.domains.upsert({
+const upsertDomains = async () => {
+  const development = await prisma.domains.upsert({
     where: { name: 'DEVELOPMENT' },
     update: {},
     create: {
       name: 'DEVELOPMENT',
     },
   });
-  const designDomain = await prisma.domains.upsert({
+  const design = await prisma.domains.upsert({
     where: { name: 'DESIGN' },
     update: {},
     create: {
       name: 'DESIGN',
     },
   });
-  const marketingDomain = await prisma.domains.upsert({
+  const marketing = await prisma.domains.upsert({
     where: { name: 'MARKETING' },
     update: {},
     create: {
       name: 'MARKETING',
     },
   });
-  console.log({ developmentDomain, designDomain, marketingDomain });
-
+  console.log('\ndomains:', [development, design, marketing]);
+};
+const upsertUsers = async () => {
   const admin = await prisma.users.upsert({
     where: { email: 'edgarcresson@hotmail.com' },
     update: {},
@@ -38,8 +39,13 @@ async function main() {
       domains: { connect: [{ name: 'DEVELOPMENT' }, { name: 'DESIGN' }] },
     },
   });
-  console.log({ admin });
-}
+  console.log('\nusers:', [admin]);
+};
+
+const main = async () => {
+  await upsertDomains();
+  await upsertUsers();
+};
 
 main()
   .catch((e) => {
