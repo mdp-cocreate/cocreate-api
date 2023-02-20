@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -27,12 +28,14 @@ const upsertDomains = async () => {
   console.log('\ndomains:', [development, design, marketing]);
 };
 const upsertUsers = async () => {
+  const salt = await bcrypt.genSalt(Number(process.env.PASSWORD_SALT) || 10);
+  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || '123', salt);
   const admin = await prisma.users.upsert({
     where: { email: 'edgarcresson@hotmail.com' },
     update: {},
     create: {
       email: 'edgarcresson@hotmail.com',
-      password: '123',
+      password: hash,
       firstName: 'Edgar',
       lastName: 'Cresson',
       country: 'France',
