@@ -28,7 +28,7 @@ const upsertDomains = async () => {
   console.log('\ndomains:', [development, design, marketing]);
 };
 const upsertUsers = async () => {
-  const salt = await bcrypt.genSalt(Number(process.env.PASSWORD_SALT) || 10);
+  const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT) || 10);
   const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || '123', salt);
   const admin = await prisma.users.upsert({
     where: { email: 'edgarcresson@hotmail.com' },

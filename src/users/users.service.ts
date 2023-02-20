@@ -1,20 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
 import { UserEntity } from './entities/user.entity';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
-
-  async create(createUserDto: CreateUserDto): Promise<UserEntity> {
-    const salt = await bcrypt.genSalt(Number(process.env.PASSWORD_SALT) || 10);
-    const hash = await bcrypt.hash(createUserDto.password, salt);
-    const newUser = { ...createUserDto, password: hash };
-    return await this.prisma.users.create({ data: newUser });
-  }
 
   async findAll(): Promise<UserEntity[]> {
     return await this.prisma.users.findMany({
@@ -32,7 +28,8 @@ export class UsersService {
       },
     });
 
-    if (!userFound) throw new NotFoundException();
+    if (!userFound)
+      throw new NotFoundException(`user with email "${email} does not exist"`);
     return userFound;
   }
 
@@ -46,8 +43,16 @@ export class UsersService {
         data: updateUserDto,
       });
       return userUpdated;
-    } catch (e) {
-      throw new NotFoundException();
+    } catch (e: unknown) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      )
+        throw new NotFoundException(
+          `the email address "${email}" is not associated with any account`
+        );
+
+      throw new InternalServerErrorException();
     }
   }
 
@@ -55,8 +60,16 @@ export class UsersService {
     try {
       const userToDelete = await this.prisma.users.delete({ where: { email } });
       return userToDelete;
-    } catch (e) {
-      throw new NotFoundException();
+    } catch (e: unknown) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      )
+        throw new NotFoundException(
+          `the email address "${email}" is not associated with any account`
+        );
+
+      throw new InternalServerErrorException();
     }
   }
 }
