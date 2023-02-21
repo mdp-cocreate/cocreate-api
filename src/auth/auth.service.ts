@@ -11,7 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { Prisma } from '@prisma/client';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from './jwt-payload.interface';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
