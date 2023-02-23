@@ -20,7 +20,9 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  async findAll(@Query() userQueryDto: UserQueryDto): Promise<UserEntity[]> {
+  async findAll(
+    @Query() userQueryDto: UserQueryDto
+  ): Promise<{ users: UserEntity[] }> {
     return await this.usersService.findAll(userQueryDto);
   }
 
@@ -28,7 +30,7 @@ export class UsersController {
   async findOne(
     @Param('email') email: string,
     @Query() userQueryDto: UserQueryDto
-  ): Promise<UserEntity> {
+  ): Promise<{ user: UserEntity }> {
     return await this.usersService.findOne(email, userQueryDto);
   }
 
@@ -36,12 +38,12 @@ export class UsersController {
   async update(
     @Param('email') email: string,
     @Body() updateUserDto: UpdateUserDto
-  ): Promise<UserEntity> {
+  ): Promise<{ user: UserEntity }> {
     return await this.usersService.update(email, updateUserDto);
   }
 
   @Delete(':email')
-  async remove(@Param('email') email: string): Promise<UserEntity> {
+  async remove(@Param('email') email: string): Promise<{ user: UserEntity }> {
     return await this.usersService.remove(email);
   }
 }

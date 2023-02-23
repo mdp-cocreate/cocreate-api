@@ -18,10 +18,11 @@ export class UsersService {
     projects = false,
     contributions = false,
     actions = false,
-  }: UserQueryDto): Promise<UserEntity[]> {
-    return await this.prisma.users.findMany({
+  }: UserQueryDto): Promise<{ users: UserEntity[] }> {
+    const users = await this.prisma.users.findMany({
       include: { domains, projects, contributions, actions },
     });
+    return { users };
   }
 
   async findOne(
@@ -32,7 +33,7 @@ export class UsersService {
       contributions = false,
       actions = false,
     }: UserQueryDto
-  ): Promise<UserEntity> {
+  ): Promise<{ user: UserEntity }> {
     const userFound = await this.prisma.users.findUnique({
       where: { email },
       include: { domains, projects, contributions, actions },
@@ -40,13 +41,13 @@ export class UsersService {
 
     if (!userFound)
       throw new NotFoundException(`user with email "${email}" does not exist`);
-    return userFound;
+    return { user: userFound };
   }
 
   async update(
     email: string,
     updateUserDto: UpdateUserDto
-  ): Promise<UserEntity> {
+  ): Promise<{ user: UserEntity }> {
     try {
       const userUpdated = await this.prisma.users.update({
         where: { email },
@@ -58,7 +59,7 @@ export class UsersService {
         },
         data: updateUserDto,
       });
-      return userUpdated;
+      return { user: userUpdated };
     } catch (e: unknown) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -70,12 +71,12 @@ export class UsersService {
     }
   }
 
-  async remove(email: string): Promise<UserEntity> {
+  async remove(email: string): Promise<{ user: UserEntity }> {
     try {
       const userToDelete = await this.prisma.users.delete({
         where: { email },
       });
-      return userToDelete;
+      return { user: userToDelete };
     } catch (e: unknown) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
