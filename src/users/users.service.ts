@@ -39,7 +39,7 @@ export class UsersService {
     });
 
     if (!userFound)
-      throw new NotFoundException(`user with email "${email} does not exist"`);
+      throw new NotFoundException(`user with email "${email}" does not exist`);
     return userFound;
   }
 
@@ -64,7 +64,7 @@ export class UsersService {
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2025'
       )
-        throw new NotFoundException();
+        throw new NotFoundException(e.meta?.cause);
 
       throw new InternalServerErrorException();
     }
@@ -81,7 +81,7 @@ export class UsersService {
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2025'
       )
-        throw new NotFoundException();
+        throw new NotFoundException(e.meta?.cause);
 
       throw new InternalServerErrorException();
     }
