@@ -25,6 +25,7 @@ const upsertDomains = async () => {
       name: 'MARKETING',
     },
   });
+
   // eslint-disable-next-line no-console
   console.log('\ndomains:', [development, design, marketing]);
 };
@@ -43,6 +44,7 @@ const upsertUsers = async () => {
       domains: { connect: [{ name: 'DEVELOPMENT' }, { name: 'DESIGN' }] },
     },
   });
+
   // eslint-disable-next-line no-console
   console.log('\nusers:', [admin]);
 };
