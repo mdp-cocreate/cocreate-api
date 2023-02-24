@@ -115,7 +115,7 @@ const upsertActions = async () => {
           id: 1,
         },
       },
-      user: {
+      author: {
         connect: {
           email: 'edgarcresson@hotmail.com',
         },

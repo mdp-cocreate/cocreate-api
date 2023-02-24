@@ -1,4 +1,3 @@
-import { Domain } from '@prisma/client';
 import {
   IsEmail,
   IsNotEmpty,

@@ -10,8 +10,8 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "tsc": "tsc",
-    "lint": "eslint ./src/**/*.ts",
-    "lint:fix": "eslint ./src/**/*.ts --fix"
+    "lint": "eslint ./src/*",
+    "lint:fix": "eslint ./src/* --fix"
   },
   "repository": {
     "type": "git",
