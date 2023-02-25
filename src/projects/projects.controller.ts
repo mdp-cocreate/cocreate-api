@@ -19,7 +19,7 @@ import { ProjectItemEntity } from './entities/project-item.entity';
 import { UpdateItemDto } from './dto/update-item-dto';
 
 @Controller('projects')
-// @UseGuards(AuthGuard())
+@UseGuards(AuthGuard())
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
