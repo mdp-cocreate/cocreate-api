@@ -9,20 +9,20 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Get(':id')
-  findOneItem(@Param('id') id: string): Promise<{ item: ProjectItemEntity }> {
-    return this.itemsService.findOneItem(+id);
+  findOne(@Param('id') id: string): Promise<{ item: ProjectItemEntity }> {
+    return this.itemsService.findOne(+id);
   }
 
   @Patch(':id')
-  updateItem(
+  update(
     @Param('id') id: string,
     @Body() updateItemDto: UpdateItemDto
   ): Promise<{ item: ProjectItemEntity }> {
-    return this.itemsService.updateItem(+id, updateItemDto);
+    return this.itemsService.update(+id, updateItemDto);
   }
 
   @Delete(':id')
-  removeItem(@Param('id') id: string): Promise<{ item: ProjectItemEntity }> {
-    return this.itemsService.removeItem(+id);
+  remove(@Param('id') id: string): Promise<{ item: ProjectItemEntity }> {
+    return this.itemsService.remove(+id);
   }
 }

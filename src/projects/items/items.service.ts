@@ -12,7 +12,7 @@ import { UpdateItemDto } from './dto/update-item-dto';
 export class ItemsService {
   constructor(private prisma: PrismaService) {}
 
-  async findOneItem(id: number): Promise<{ item: ProjectItemEntity }> {
+  async findOne(id: number): Promise<{ item: ProjectItemEntity }> {
     const itemFound = await this.prisma.projectItems.findUnique({
       where: {
         id,
@@ -25,7 +25,7 @@ export class ItemsService {
     return { item: itemFound };
   }
 
-  async updateItem(
+  async update(
     id: number,
     updateItemDto: UpdateItemDto
   ): Promise<{ item: ProjectItemEntity }> {
@@ -46,7 +46,7 @@ export class ItemsService {
     }
   }
 
-  async removeItem(id: number): Promise<{ item: ProjectItemEntity }> {
+  async remove(id: number): Promise<{ item: ProjectItemEntity }> {
     try {
       const itemToDelete = await this.prisma.projectItems.delete({
         where: { id },
