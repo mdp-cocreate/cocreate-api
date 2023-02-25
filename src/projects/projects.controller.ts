@@ -16,7 +16,6 @@ import { ProjectEntity } from './entities/project.entity';
 import { ProjectFiltersDto } from './dto/project-filters-dto';
 import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
-import { UpdateItemDto } from './dto/update-item-dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard())
@@ -56,7 +55,6 @@ export class ProjectsController {
     return this.projectsService.remove(+id);
   }
 
-  // Items
   @Post(':id/items')
   createItem(
     @Param('id') id: string,
@@ -70,23 +68,5 @@ export class ProjectsController {
     @Param('id') id: string
   ): Promise<{ items: ProjectItemEntity[] }> {
     return this.projectsService.findAllItems(+id);
-  }
-
-  @Get('items/:id')
-  findOneItem(@Param('id') id: string): Promise<{ item: ProjectItemEntity }> {
-    return this.projectsService.findOneItem(+id);
-  }
-
-  @Patch('items/:id')
-  updateItem(
-    @Param('id') id: string,
-    @Body() updateItemDto: UpdateItemDto
-  ): Promise<{ item: ProjectItemEntity }> {
-    return this.projectsService.updateItem(+id, updateItemDto);
-  }
-
-  @Delete('items/:id')
-  removeItem(@Param('id') id: string): Promise<{ item: ProjectItemEntity }> {
-    return this.projectsService.removeItem(+id);
   }
 }

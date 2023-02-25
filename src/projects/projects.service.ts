@@ -6,13 +6,12 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectFiltersDto } from './dto/project-filters-dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ProjectItemEntity } from './entities/project-item.entity';
 import { ProjectEntity } from './entities/project.entity';
-import { UpdateItemDto } from './dto/update-item-dto';
+import { CreateItemDto } from './dto/create-item-dto';
+import { ProjectItemEntity } from './entities/project-item.entity';
 
 @Injectable()
 export class ProjectsService {
@@ -183,7 +182,6 @@ export class ProjectsService {
     }
   }
 
-  // Items
   async createItem(
     id: number,
     createItemDto: CreateItemDto
@@ -220,56 +218,5 @@ export class ProjectsService {
     });
 
     return { items };
-  }
-
-  async findOneItem(id: number): Promise<{ item: ProjectItemEntity }> {
-    const itemFound = await this.prisma.projectItems.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!itemFound)
-      throw new NotFoundException(`item with id "${id}" does not exist`);
-
-    return { item: itemFound };
-  }
-
-  async updateItem(
-    id: number,
-    updateItemDto: UpdateItemDto
-  ): Promise<{ item: ProjectItemEntity }> {
-    try {
-      const itemUpdated = await this.prisma.projectItems.update({
-        where: { id },
-        data: updateItemDto,
-      });
-      return { item: itemUpdated };
-    } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
-    }
-  }
-
-  async removeItem(id: number): Promise<{ item: ProjectItemEntity }> {
-    try {
-      const itemToDelete = await this.prisma.projectItems.delete({
-        where: { id },
-      });
-      return { item: itemToDelete };
-    } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
-    }
   }
 }
