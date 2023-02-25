@@ -8,15 +8,17 @@ import {
   Delete,
   UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectEntity } from './entities/project.entity';
 import { ProjectFiltersDto } from './dto/project-filters-dto';
-import { AuthGuard } from '@nestjs/passport';
+import { CreateItemDto } from './dto/create-item-dto';
+import { ProjectItemEntity } from './entities/project-item.entity';
 
 @Controller('projects')
-@UseGuards(AuthGuard())
+// @UseGuards(AuthGuard())
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
@@ -51,5 +53,25 @@ export class ProjectsController {
   @Delete(':id')
   remove(@Param('id') id: string): Promise<{ project: ProjectEntity }> {
     return this.projectsService.remove(+id);
+  }
+
+  @Post(':id/items')
+  createItem(
+    @Param('id') id: string,
+    @Body() createItemDto: CreateItemDto
+  ): Promise<ProjectItemEntity> {
+    return this.projectsService.createItem(+id, createItemDto);
+  }
+
+  @Get(':id/items')
+  getItems(@Param('id') id: string): Promise<{ items: ProjectItemEntity[] }> {
+    return this.projectsService.getItems(+id);
+  }
+
+  @Get('/items/:itemId')
+  getItem(
+    @Param('itemId') itemId: string
+  ): Promise<{ item: ProjectItemEntity }> {
+    return this.projectsService.getItem(+itemId);
   }
 }

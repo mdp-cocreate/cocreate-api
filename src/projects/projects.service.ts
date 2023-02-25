@@ -6,9 +6,11 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateProjectDto } from './dto/create-project.dto';
+import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectFiltersDto } from './dto/project-filters-dto';
+import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { ProjectItemEntity } from './entities/project-item.entity';
 import { ProjectEntity } from './entities/project.entity';
 
 @Injectable()
@@ -178,5 +180,56 @@ export class ProjectsService {
 
       throw new InternalServerErrorException();
     }
+  }
+
+  async createItem(
+    id: number,
+    createItemDto: CreateItemDto
+  ): Promise<ProjectItemEntity> {
+    try {
+      return await this.prisma.projectItems.create({
+        data: { ...createItemDto, projectId: id },
+      });
+    } catch (e: unknown) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      )
+        throw new ConflictException();
+
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2003'
+      )
+        throw new NotFoundException(e.meta?.cause);
+
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getItems(id: number): Promise<{ items: ProjectItemEntity[] }> {
+    const items = await this.prisma.projectItems.findMany({
+      where: {
+        projectId: id,
+      },
+      include: {
+        author: true,
+      },
+    });
+
+    return { items };
+  }
+
+  async getItem(itemId: number): Promise<{ item: ProjectItemEntity }> {
+    const itemFound = await this.prisma.projectItems.findUnique({
+      where: {
+        id: itemId,
+      },
+    });
+
+    if (!itemFound)
+      throw new NotFoundException(`item with id "${itemId}" does not exist`);
+
+    return { item: itemFound };
   }
 }
