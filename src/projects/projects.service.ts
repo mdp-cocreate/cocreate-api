@@ -1,10 +1,5 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProjectFiltersDto } from './dto/project-filters-dto';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -12,24 +7,44 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectEntity } from './entities/project.entity';
 import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
+import { handleError } from 'src/utils/handleError';
 
 @Injectable()
 export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createProjectDto: CreateProjectDto): Promise<ProjectEntity> {
+  async create(
+    createProjectDto: CreateProjectDto
+  ): Promise<{ project: ProjectEntity }> {
     try {
-      return await this.prisma.projects.create({
-        data: createProjectDto,
-      });
-    } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      )
-        throw new ConflictException();
+      const { authorEmail, domains, ...data } = createProjectDto;
 
-      throw new InternalServerErrorException();
+      const newProject = await this.prisma.projects.create({
+        data: {
+          ...data,
+          domains: {
+            connect: domains.map((domain) => ({ name: domain })),
+          },
+          members: {
+            create: {
+              role: Role.OWNER,
+              user: {
+                connect: { email: authorEmail },
+              },
+            },
+          },
+          actions: {
+            create: {
+              author: { connect: { email: authorEmail } },
+              name: 'a créé le projet',
+            },
+          },
+        },
+      });
+
+      return { project: newProject };
+    } catch (e: unknown) {
+      throw handleError(e);
     }
   }
 
@@ -82,6 +97,7 @@ export class ProjectsService {
         },
       },
     });
+
     return { projects };
   }
 
@@ -141,6 +157,7 @@ export class ProjectsService {
 
     if (!projectFound)
       throw new NotFoundException(`project with id "${id}" does not exist`);
+
     return { project: projectFound };
   }
 
@@ -149,19 +166,27 @@ export class ProjectsService {
     updateProjectDto: UpdateProjectDto
   ): Promise<{ project: ProjectEntity }> {
     try {
+      const { authorEmail, domains, ...data } = updateProjectDto;
+
       const projectUpdated = await this.prisma.projects.update({
         where: { id },
-        data: updateProjectDto,
+        data: {
+          ...data,
+          domains: domains && {
+            set: domains.map((domain) => ({ name: domain })),
+          },
+          actions: {
+            create: {
+              author: { connect: { email: authorEmail } },
+              name: `a modifié le projet "${updateProjectDto.name}"`,
+            },
+          },
+        },
       });
+
       return { project: projectUpdated };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 
@@ -172,49 +197,47 @@ export class ProjectsService {
       });
       return { project: projectToDelete };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 
   async createItem(
     id: number,
     createItemDto: CreateItemDto
-  ): Promise<ProjectItemEntity> {
+  ): Promise<{ item: ProjectItemEntity }> {
     try {
-      return await this.prisma.projectItems.create({
-        data: { ...createItemDto, projectId: id },
+      const { authorEmail, ...data } = createItemDto;
+
+      const newItem = await this.prisma.projectItems.create({
+        data: {
+          ...data,
+          author: { connect: { email: authorEmail } },
+          project: { connect: { id } },
+        },
       });
+      await this.prisma.projects.update({
+        where: { id },
+        data: {
+          updatedAt: new Date(),
+          actions: {
+            create: {
+              author: { connect: { email: authorEmail } },
+              name: `a créé "${createItemDto.name}"`,
+            },
+          },
+        },
+      });
+
+      return { item: newItem };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      )
-        throw new ConflictException();
-
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2003'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 
   async findAllItems(id: number): Promise<{ items: ProjectItemEntity[] }> {
     const items = await this.prisma.projectItems.findMany({
-      where: {
-        projectId: id,
-      },
-      include: {
-        author: true,
-      },
+      where: { projectId: id },
+      include: { author: true },
     });
 
     return { items };

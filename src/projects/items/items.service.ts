@@ -1,10 +1,7 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { handleError } from 'src/utils/handleError';
+import { DeleteItemDto } from './dto/delete-item-dto';
 import { ProjectItemEntity } from '../entities/project-item.entity';
 import { UpdateItemDto } from './dto/update-item-dto';
 
@@ -14,9 +11,7 @@ export class ItemsService {
 
   async findOne(id: number): Promise<{ item: ProjectItemEntity }> {
     const itemFound = await this.prisma.projectItems.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
     });
 
     if (!itemFound)
@@ -30,36 +25,50 @@ export class ItemsService {
     updateItemDto: UpdateItemDto
   ): Promise<{ item: ProjectItemEntity }> {
     try {
+      const { authorEmail, ...data } = updateItemDto;
+
       const itemUpdated = await this.prisma.projectItems.update({
         where: { id },
-        data: updateItemDto,
+        data,
       });
+      await this.prisma.projects.update({
+        where: { id: itemUpdated.projectId },
+        data: {
+          updatedAt: new Date(),
+          actions: {
+            create: {
+              author: { connect: { email: authorEmail } },
+              name: `a modifié "${itemUpdated.name}"`,
+            },
+          },
+        },
+      });
+
       return { item: itemUpdated };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 
-  async remove(id: number): Promise<{ item: ProjectItemEntity }> {
+  async remove(
+    id: number,
+    { authorEmail }: DeleteItemDto
+  ): Promise<{ item: ProjectItemEntity }> {
     try {
       const itemToDelete = await this.prisma.projectItems.delete({
         where: { id },
       });
+      await this.prisma.actions.create({
+        data: {
+          project: { connect: { id: itemToDelete.projectId } },
+          author: { connect: { email: authorEmail } },
+          name: `a supprimé "${itemToDelete.name}"`,
+        },
+      });
+
       return { item: itemToDelete };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 }

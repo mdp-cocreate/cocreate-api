@@ -1,6 +1,9 @@
+import { Domain } from '@prisma/client';
 import {
   IsBoolean,
   IsDateString,
+  IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -25,4 +28,11 @@ export class CreateProjectDto {
   @IsDateString()
   @IsOptional()
   updatedAt: Date;
+
+  @IsEmail()
+  @IsNotEmpty()
+  authorEmail: string;
+
+  @IsEnum(Domain, { each: true })
+  domains: Domain[];
 }

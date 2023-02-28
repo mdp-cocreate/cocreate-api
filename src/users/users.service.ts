@@ -1,13 +1,9 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserEntity } from './entities/user.entity';
-import { Prisma } from '@prisma/client';
 import { UserQueryDto } from './dto/user-query-dto';
+import { handleError } from 'src/utils/handleError';
 
 @Injectable()
 export class UsersService {
@@ -61,13 +57,7 @@ export class UsersService {
       });
       return { user: userUpdated };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 
@@ -78,13 +68,7 @@ export class UsersService {
       });
       return { user: userToDelete };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 }

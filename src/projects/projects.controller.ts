@@ -18,12 +18,14 @@ import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 
 @Controller('projects')
-@UseGuards(AuthGuard())
+// @UseGuards(AuthGuard())
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto): Promise<ProjectEntity> {
+  create(
+    @Body() createProjectDto: CreateProjectDto
+  ): Promise<{ project: ProjectEntity }> {
     return this.projectsService.create(createProjectDto);
   }
 
@@ -59,7 +61,7 @@ export class ProjectsController {
   createItem(
     @Param('id') id: string,
     @Body() createItemDto: CreateItemDto
-  ): Promise<ProjectItemEntity> {
+  ): Promise<{ item: ProjectItemEntity }> {
     return this.projectsService.createItem(+id, createItemDto);
   }
 

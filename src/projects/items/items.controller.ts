@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
 import { UpdateItemDto } from './dto/update-item-dto';
 import { ProjectItemEntity } from '../entities/project-item.entity';
 import { ItemsService } from './items.service';
+import { DeleteItemDto } from './dto/delete-item-dto';
 
 @Controller('projects/items')
 // @UseGuards(AuthGuard())
@@ -22,7 +23,10 @@ export class ItemsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<{ item: ProjectItemEntity }> {
-    return this.itemsService.remove(+id);
+  remove(
+    @Param('id') id: string,
+    @Body('authorEmail') deleteItemDto: DeleteItemDto
+  ): Promise<{ item: ProjectItemEntity }> {
+    return this.itemsService.remove(+id, deleteItemDto);
   }
 }

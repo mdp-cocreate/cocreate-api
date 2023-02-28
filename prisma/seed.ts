@@ -83,7 +83,7 @@ const upsertProjects = async () => {
   });
 
   // eslint-disable-next-line no-console
-  console.log({ project });
+  console.log('\nprojects:', [project]);
 };
 
 const upsertProjectsItems = async () => {
@@ -103,12 +103,14 @@ const upsertProjectsItems = async () => {
   });
 
   // eslint-disable-next-line no-console
-  console.log({ projectItem });
+  console.log('\nprojectItems:', [projectItem]);
 };
 
 const upsertActions = async () => {
-  const action = await prisma.actions.create({
-    data: {
+  const action = await prisma.actions.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
       name: 'a créé le projet',
       project: {
         connect: {
@@ -124,7 +126,7 @@ const upsertActions = async () => {
   });
 
   // eslint-disable-next-line no-console
-  console.log({ action });
+  console.log('\nactions:', [action]);
 };
 
 const main = async () => {
