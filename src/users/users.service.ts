@@ -1,13 +1,9 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserEntity } from './entities/user.entity';
-import { Prisma } from '@prisma/client';
 import { UserQueryDto } from './dto/user-query-dto';
+import { handleError } from 'src/utils/handleError';
 
 @Injectable()
 export class UsersService {
@@ -22,6 +18,7 @@ export class UsersService {
     const users = await this.prisma.users.findMany({
       include: { domains, projects, contributions, actions },
     });
+
     return { users };
   }
 
@@ -41,6 +38,7 @@ export class UsersService {
 
     if (!userFound)
       throw new NotFoundException(`user with email "${email}" does not exist`);
+
     return { user: userFound };
   }
 
@@ -48,6 +46,8 @@ export class UsersService {
     email: string,
     updateUserDto: UpdateUserDto
   ): Promise<{ user: UserEntity }> {
+    const { domains, ...data } = updateUserDto;
+
     try {
       const userUpdated = await this.prisma.users.update({
         where: { email },
@@ -57,17 +57,17 @@ export class UsersService {
           contributions: true,
           actions: true,
         },
-        data: updateUserDto,
+        data: {
+          ...data,
+          domains: domains && {
+            set: domains.map((domain) => ({ name: domain })),
+          },
+        },
       });
+
       return { user: userUpdated };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 
@@ -76,15 +76,10 @@ export class UsersService {
       const userToDelete = await this.prisma.users.delete({
         where: { email },
       });
+
       return { user: userToDelete };
     } catch (e: unknown) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      )
-        throw new NotFoundException(e.meta?.cause);
-
-      throw new InternalServerErrorException();
+      throw handleError(e);
     }
   }
 }

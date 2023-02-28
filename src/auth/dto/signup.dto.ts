@@ -1,5 +1,7 @@
+import { Domain } from '@prisma/client';
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -33,4 +35,7 @@ export class SignupDto {
 
   @IsOptional()
   profilePicture: Buffer;
+
+  @IsEnum(Domain, { each: true })
+  domains: Domain[];
 }

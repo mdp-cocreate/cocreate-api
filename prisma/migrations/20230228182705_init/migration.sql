@@ -17,12 +17,13 @@ CREATE TABLE `Users` (
 CREATE TABLE `Projects` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
-    `description` TEXT NOT NULL,
+    `description` TEXT NULL,
     `coverImage` LONGBLOB NULL,
     `public` BOOLEAN NOT NULL DEFAULT true,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    UNIQUE INDEX `Projects_name_key`(`name`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -42,6 +43,7 @@ CREATE TABLE `ProjectItems` (
     `description` TEXT NULL,
     `link` VARCHAR(191) NULL,
     `associatedFile` LONGBLOB NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `authorId` INTEGER NOT NULL,
     `projectId` INTEGER NOT NULL,
 
@@ -60,12 +62,13 @@ CREATE TABLE `ProjectsToMembers` (
 
 -- CreateTable
 CREATE TABLE `Actions` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `projectId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
 
-    PRIMARY KEY (`projectId`, `userId`)
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -87,22 +90,22 @@ CREATE TABLE `_DomainsToProjects` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `ProjectItems` ADD CONSTRAINT `ProjectItems_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `ProjectItems` ADD CONSTRAINT `ProjectItems_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `Users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ProjectItems` ADD CONSTRAINT `ProjectItems_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Projects`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `ProjectItems` ADD CONSTRAINT `ProjectItems_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Projects`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ProjectsToMembers` ADD CONSTRAINT `ProjectsToMembers_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Projects`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `ProjectsToMembers` ADD CONSTRAINT `ProjectsToMembers_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Projects`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ProjectsToMembers` ADD CONSTRAINT `ProjectsToMembers_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `ProjectsToMembers` ADD CONSTRAINT `ProjectsToMembers_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Actions` ADD CONSTRAINT `Actions_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Projects`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Actions` ADD CONSTRAINT `Actions_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Projects`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Actions` ADD CONSTRAINT `Actions_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Actions` ADD CONSTRAINT `Actions_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_DomainsToUsers` ADD CONSTRAINT `_DomainsToUsers_A_fkey` FOREIGN KEY (`A`) REFERENCES `Domains`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
