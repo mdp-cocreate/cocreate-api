@@ -49,6 +49,7 @@ model ProjectItems {
   description    String?  @db.Text
   link           String?
   associatedFile Bytes?
+  createdAt      DateTime @default(now())
   author         Users    @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   authorId       Int
   project        Projects @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)

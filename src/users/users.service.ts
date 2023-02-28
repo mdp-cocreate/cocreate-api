@@ -18,6 +18,7 @@ export class UsersService {
     const users = await this.prisma.users.findMany({
       include: { domains, projects, contributions, actions },
     });
+
     return { users };
   }
 
@@ -37,6 +38,7 @@ export class UsersService {
 
     if (!userFound)
       throw new NotFoundException(`user with email "${email}" does not exist`);
+
     return { user: userFound };
   }
 
@@ -44,6 +46,8 @@ export class UsersService {
     email: string,
     updateUserDto: UpdateUserDto
   ): Promise<{ user: UserEntity }> {
+    const { domains, ...data } = updateUserDto;
+
     try {
       const userUpdated = await this.prisma.users.update({
         where: { email },
@@ -53,8 +57,14 @@ export class UsersService {
           contributions: true,
           actions: true,
         },
-        data: updateUserDto,
+        data: {
+          ...data,
+          domains: domains && {
+            set: domains.map((domain) => ({ name: domain })),
+          },
+        },
       });
+
       return { user: userUpdated };
     } catch (e: unknown) {
       throw handleError(e);
@@ -66,6 +76,7 @@ export class UsersService {
       const userToDelete = await this.prisma.users.delete({
         where: { email },
       });
+
       return { user: userToDelete };
     } catch (e: unknown) {
       throw handleError(e);

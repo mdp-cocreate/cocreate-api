@@ -16,8 +16,16 @@ export class AuthService {
     const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT) || 10);
     const hash = await bcrypt.hash(signupDto.password, salt);
     const user = { ...signupDto, password: hash };
+
     try {
-      const newUser = await this.prisma.users.create({ data: user });
+      const { domains, ...data } = user;
+      const newUser = await this.prisma.users.create({
+        data: {
+          ...data,
+          domains: { connect: domains.map((domain) => ({ name: domain })) },
+        },
+      });
+
       return { user: newUser };
     } catch (e: unknown) {
       throw handleError(e);
