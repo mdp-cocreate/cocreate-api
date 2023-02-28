@@ -18,7 +18,7 @@ import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 
 @Controller('projects')
-// @UseGuards(AuthGuard())
+@UseGuards(AuthGuard())
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
@@ -68,7 +68,7 @@ export class ProjectsController {
   @Get(':id/items')
   findAllItems(
     @Param('id') id: string
-  ): Promise<{ items: ProjectItemEntity[] }> {
+  ): Promise<{ items: Partial<ProjectItemEntity>[] }> {
     return this.projectsService.findAllItems(+id);
   }
 }

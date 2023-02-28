@@ -8,6 +8,8 @@ import { ProjectEntity } from './entities/project.entity';
 import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 import { handleError } from 'src/utils/handleError';
+import { projectRetrievalFormat } from 'src/utils/projectRetrievalFormat';
+import { projectItemRetrieveFormat } from 'src/utils/projectItemRetrieveFormat';
 
 @Injectable()
 export class ProjectsService {
@@ -48,54 +50,11 @@ export class ProjectsService {
     }
   }
 
-  async findAll({
-    selectDomains,
-    selectMembers,
-    selectItems,
-    selectActions,
-  }: ProjectFiltersDto): Promise<{ projects: ProjectEntity[] }> {
+  async findAll(
+    projectFiltersDto: ProjectFiltersDto
+  ): Promise<{ projects: ProjectEntity[] }> {
     const projects = await this.prisma.projects.findMany({
-      include: {
-        domains: selectDomains,
-        members: selectMembers && {
-          select: {
-            role: true,
-            addedAt: true,
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                country: true,
-                profilePicture: true,
-                registeredAt: true,
-              },
-            },
-          },
-        },
-        items: selectItems && {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            link: true,
-            associatedFile: true,
-          },
-        },
-        actions: selectActions && {
-          select: {
-            author: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
-            name: true,
-            createdAt: true,
-          },
-        },
-      },
+      include: projectRetrievalFormat(projectFiltersDto),
     });
 
     return { projects };
@@ -103,56 +62,11 @@ export class ProjectsService {
 
   async findOne(
     id: number,
-    {
-      selectDomains,
-      selectMembers,
-      selectItems,
-      selectActions,
-    }: ProjectFiltersDto
+    projectFiltersDto: ProjectFiltersDto
   ): Promise<{ project: ProjectEntity }> {
     const projectFound = await this.prisma.projects.findUnique({
       where: { id },
-      include: {
-        domains: selectDomains,
-        members: selectMembers && {
-          select: {
-            role: true,
-            addedAt: true,
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                country: true,
-                profilePicture: true,
-                registeredAt: true,
-              },
-            },
-          },
-        },
-        items: selectItems && {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            link: true,
-            associatedFile: true,
-          },
-        },
-        actions: selectActions && {
-          select: {
-            author: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
-            name: true,
-            createdAt: true,
-          },
-        },
-      },
+      include: projectRetrievalFormat(projectFiltersDto),
     });
 
     if (!projectFound)
@@ -195,6 +109,7 @@ export class ProjectsService {
       const projectToDelete = await this.prisma.projects.delete({
         where: { id },
       });
+
       return { project: projectToDelete };
     } catch (e: unknown) {
       throw handleError(e);
@@ -234,10 +149,12 @@ export class ProjectsService {
     }
   }
 
-  async findAllItems(id: number): Promise<{ items: ProjectItemEntity[] }> {
+  async findAllItems(
+    id: number
+  ): Promise<{ items: Partial<ProjectItemEntity>[] }> {
     const items = await this.prisma.projectItems.findMany({
       where: { projectId: id },
-      include: { author: true },
+      select: projectItemRetrieveFormat(),
     });
 
     return { items };

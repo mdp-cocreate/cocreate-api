@@ -4,14 +4,16 @@ import { handleError } from 'src/utils/handleError';
 import { DeleteItemDto } from './dto/delete-item-dto';
 import { ProjectItemEntity } from '../entities/project-item.entity';
 import { UpdateItemDto } from './dto/update-item-dto';
+import { projectItemRetrieveFormat } from 'src/utils/projectItemRetrieveFormat';
 
 @Injectable()
 export class ItemsService {
   constructor(private prisma: PrismaService) {}
 
-  async findOne(id: number): Promise<{ item: ProjectItemEntity }> {
+  async findOne(id: number): Promise<{ item: Partial<ProjectItemEntity> }> {
     const itemFound = await this.prisma.projectItems.findUnique({
       where: { id },
+      select: projectItemRetrieveFormat(),
     });
 
     if (!itemFound)
@@ -58,11 +60,16 @@ export class ItemsService {
       const itemToDelete = await this.prisma.projectItems.delete({
         where: { id },
       });
-      await this.prisma.actions.create({
+      await this.prisma.projects.update({
+        where: { id: itemToDelete.projectId },
         data: {
-          project: { connect: { id: itemToDelete.projectId } },
-          author: { connect: { email: authorEmail } },
-          name: `a supprimé "${itemToDelete.name}"`,
+          updatedAt: new Date(),
+          actions: {
+            create: {
+              author: { connect: { email: authorEmail } },
+              name: `a supprimé "${itemToDelete.name}"`,
+            },
+          },
         },
       });
 
