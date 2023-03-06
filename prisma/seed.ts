@@ -32,7 +32,8 @@ const upsertDomains = async () => {
 
 const upsertUsers = async () => {
   const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT) || 10);
-  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || '123', salt);
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD!, salt);
   const admin = await prisma.users.upsert({
     where: { email: 'edgarcresson@hotmail.com' },
     update: {},
