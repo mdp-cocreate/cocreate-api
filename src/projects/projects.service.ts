@@ -16,10 +16,11 @@ export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
   async create(
-    createProjectDto: CreateProjectDto
+    createProjectDto: CreateProjectDto,
+    authorEmail: string
   ): Promise<{ project: ProjectEntity }> {
     try {
-      const { authorEmail, domains, ...data } = createProjectDto;
+      const { domains, ...data } = createProjectDto;
 
       const newProject = await this.prisma.projects.create({
         data: {
@@ -77,10 +78,11 @@ export class ProjectsService {
 
   async update(
     id: number,
-    updateProjectDto: UpdateProjectDto
+    updateProjectDto: UpdateProjectDto,
+    authorEmail: string
   ): Promise<{ project: ProjectEntity }> {
     try {
-      const { authorEmail, domains, ...data } = updateProjectDto;
+      const { domains, ...data } = updateProjectDto;
 
       const projectUpdated = await this.prisma.projects.update({
         where: { id },
@@ -118,14 +120,13 @@ export class ProjectsService {
 
   async createItem(
     id: number,
-    createItemDto: CreateItemDto
+    createItemDto: CreateItemDto,
+    authorEmail: string
   ): Promise<{ item: ProjectItemEntity }> {
     try {
-      const { authorEmail, ...data } = createItemDto;
-
       const newItem = await this.prisma.projectItems.create({
         data: {
-          ...data,
+          ...createItemDto,
           author: { connect: { email: authorEmail } },
           project: { connect: { id } },
         },

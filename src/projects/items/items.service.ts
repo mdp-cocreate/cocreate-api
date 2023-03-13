@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { handleError } from 'src/utils/handleError';
-import { DeleteItemDto } from './dto/delete-item-dto';
 import { ProjectItemEntity } from '../entities/project-item.entity';
 import { UpdateItemDto } from './dto/update-item-dto';
 import { projectItemRetrieveFormat } from 'src/utils/projectItemRetrieveFormat';
@@ -24,14 +23,13 @@ export class ItemsService {
 
   async update(
     id: number,
-    updateItemDto: UpdateItemDto
+    updateItemDto: UpdateItemDto,
+    authorEmail: string
   ): Promise<{ item: ProjectItemEntity }> {
     try {
-      const { authorEmail, ...data } = updateItemDto;
-
       const itemUpdated = await this.prisma.projectItems.update({
         where: { id },
-        data,
+        data: updateItemDto,
       });
       await this.prisma.projects.update({
         where: { id: itemUpdated.projectId },
@@ -54,7 +52,7 @@ export class ItemsService {
 
   async remove(
     id: number,
-    { authorEmail }: DeleteItemDto
+    authorEmail: string
   ): Promise<{ item: ProjectItemEntity }> {
     try {
       const itemToDelete = await this.prisma.projectItems.delete({

@@ -15,8 +15,4 @@ export class CreateItemDto {
 
   @IsOptional()
   associatedFile?: Buffer;
-
-  @IsEmail()
-  @IsNotEmpty()
-  authorEmail: string;
 }

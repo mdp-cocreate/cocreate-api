@@ -5,16 +5,17 @@ import {
   Get,
   Param,
   Patch,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UpdateItemDto } from './dto/update-item-dto';
 import { ProjectItemEntity } from '../entities/project-item.entity';
 import { ItemsService } from './items.service';
-import { DeleteItemDto } from './dto/delete-item-dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 @Controller('projects/items')
-@UseGuards(AuthGuard())
+@UseGuards(AuthGuard('jwt'))
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
@@ -28,16 +29,17 @@ export class ItemsController {
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateItemDto: UpdateItemDto
+    @Body() updateItemDto: UpdateItemDto,
+    @Req() { user }: { user: UserEntity }
   ): Promise<{ item: ProjectItemEntity }> {
-    return this.itemsService.update(+id, updateItemDto);
+    return this.itemsService.update(+id, updateItemDto, user.email);
   }
 
   @Delete(':id')
   remove(
     @Param('id') id: string,
-    @Body('authorEmail') deleteItemDto: DeleteItemDto
+    @Req() { user }: { user: UserEntity }
   ): Promise<{ item: ProjectItemEntity }> {
-    return this.itemsService.remove(+id, deleteItemDto);
+    return this.itemsService.remove(+id, user.email);
   }
 }

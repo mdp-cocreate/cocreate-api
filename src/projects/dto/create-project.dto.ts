@@ -29,10 +29,6 @@ export class CreateProjectDto {
   @IsOptional()
   updatedAt: Date;
 
-  @IsEmail()
-  @IsNotEmpty()
-  authorEmail: string;
-
   @IsEnum(Domain, { each: true })
   domains: Domain[];
 }
