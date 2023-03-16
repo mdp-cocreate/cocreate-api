@@ -2,7 +2,6 @@ import { Domain } from '@prisma/client';
 import {
   IsBoolean,
   IsDateString,
-  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -16,18 +15,18 @@ export class CreateProjectDto {
 
   @IsString()
   @IsOptional()
-  description: string;
+  description?: string;
 
   @IsOptional()
-  coverImage: Buffer;
+  coverImage?: Buffer;
 
   @IsBoolean()
   @IsOptional()
-  public: boolean;
+  public?: boolean;
 
   @IsDateString()
   @IsOptional()
-  updatedAt: Date;
+  updatedAt?: Date;
 
   @IsEnum(Domain, { each: true })
   domains: Domain[];

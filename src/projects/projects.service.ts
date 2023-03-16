@@ -138,7 +138,7 @@ export class ProjectsService {
           actions: {
             create: {
               author: { connect: { email: authorEmail } },
-              name: `a créé "${createItemDto.name}"`,
+              name: `a ajouté "${createItemDto.name} au projet"`,
             },
           },
         },

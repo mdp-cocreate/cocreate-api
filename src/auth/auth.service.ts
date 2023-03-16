@@ -35,12 +35,13 @@ export class AuthService {
   async login({ email, password }: LoginDto): Promise<{ accessToken: string }> {
     const user = await this.prisma.users.findUnique({
       where: { email },
+      select: { email: true, password: true },
     });
 
     if (!user || !(await bcrypt.compare(password, user.password)))
       throw new UnauthorizedException();
 
-    const payload: JwtPayload = { email };
+    const payload: JwtPayload = { email: user.email };
     const accessToken = this.jwtService.sign(payload);
     return { accessToken };
   }
