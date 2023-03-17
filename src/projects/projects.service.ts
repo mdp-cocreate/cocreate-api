@@ -9,7 +9,6 @@ import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 import { handleError } from 'src/utils/handleError';
 import { projectRetrievalFormat } from 'src/utils/projectRetrievalFormat';
-import { projectItemRetrieveFormat } from 'src/utils/projectItemRetrieveFormat';
 
 @Injectable()
 export class ProjectsService {
@@ -55,6 +54,7 @@ export class ProjectsService {
     projectFiltersDto: ProjectFiltersDto
   ): Promise<{ projects: ProjectEntity[] }> {
     const projects = await this.prisma.projects.findMany({
+      where: { public: true },
       include: projectRetrievalFormat(projectFiltersDto),
     });
 
@@ -148,16 +148,5 @@ export class ProjectsService {
     } catch (e: unknown) {
       throw handleError(e);
     }
-  }
-
-  async findAllItems(
-    id: number
-  ): Promise<{ items: Partial<ProjectItemEntity>[] }> {
-    const items = await this.prisma.projectItems.findMany({
-      where: { projectId: id },
-      select: projectItemRetrieveFormat(),
-    });
-
-    return { items };
   }
 }

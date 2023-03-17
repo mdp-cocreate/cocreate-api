@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { ProjectFiltersDto } from 'src/projects/dto/project-filters-dto';
+import { projectItemRetrieveFormat } from './projectItemRetrieveFormat';
 
 export const projectRetrievalFormat = ({
   selectDomains,
@@ -25,23 +26,7 @@ export const projectRetrievalFormat = ({
       },
     },
   },
-  items: selectItems && {
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      link: true,
-      associatedFile: true,
-      author: {
-        select: {
-          email: true,
-          firstName: true,
-          lastName: true,
-          profilePicture: true,
-        },
-      },
-    },
-  },
+  items: selectItems && { select: projectItemRetrieveFormat() },
   actions: selectActions && {
     select: {
       author: {
