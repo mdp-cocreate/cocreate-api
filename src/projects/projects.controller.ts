@@ -14,10 +14,10 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectEntity } from './entities/project.entity';
-import { ProjectFiltersDto } from './dto/project-filters-dto';
 import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
+import { AddUserDto } from './dto/add-user-dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard('jwt'))
@@ -33,22 +33,19 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll(
-    @Body() projectFiltersDto: ProjectFiltersDto
-  ): Promise<{ projects: ProjectEntity[] }> {
-    return this.projectsService.findAll(projectFiltersDto);
+  findAll(): Promise<{ projects: ProjectEntity[] }> {
+    return this.projectsService.findAll();
   }
 
-  // TODO Tous les utilisateurs connectés peuvent voir un projet (s'il est public, sinon, seuls les membres peuvent le voir)
   @Get(':id')
-  findOne(
+  async findOne(
     @Param('id') id: string,
-    @Body() projectFiltersDto: ProjectFiltersDto
+    @Req() { user }: { user: UserEntity }
   ): Promise<{ project: ProjectEntity }> {
-    return this.projectsService.findOne(+id, projectFiltersDto);
+    return this.projectsService.findOne(+id, user.email);
   }
 
-  // TODO Seuls les membres du projet en question ayant le rôle OWNER ou EDITOR peuvent modifier le projet
+  // Seuls les membres du projet en question ayant le rôle OWNER ou EDITOR peuvent modifier le projet
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -58,13 +55,26 @@ export class ProjectsController {
     return this.projectsService.update(+id, updateProjectDto, user.email);
   }
 
-  // TODO Seul le membre du projet en question ayant le rôle OWNER peut supprimer le projet
+  // Seul le membre du projet en question ayant le rôle OWNER peut supprimer le projet
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<{ project: ProjectEntity }> {
-    return this.projectsService.remove(+id);
+  remove(
+    @Param('id') id: string,
+    @Req() { user }: { user: UserEntity }
+  ): Promise<{ project: ProjectEntity }> {
+    return this.projectsService.remove(+id, user.email);
   }
 
-  // TODO Tous les utilisateurs peuvent contribuer à un projet (si public)
+  // Seul le membre du projet en question ayant le rôle OWNER peut ajouter qqn au projet
+  @Post(':id/add-user')
+  addUser(
+    @Param('id') id: string,
+    @Body() addUserDto: AddUserDto,
+    @Req() { user }: { user: UserEntity }
+  ) {
+    return this.projectsService.addUser(+id, addUserDto, user.email);
+  }
+
+  // Tous les utilisateurs peuvent contribuer à un projet (si public)
   @Post(':id/items')
   createItem(
     @Param('id') id: string,
