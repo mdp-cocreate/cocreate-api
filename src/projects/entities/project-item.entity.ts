@@ -8,5 +8,6 @@ export class ProjectItemEntity implements ProjectItems {
   associatedFile: Buffer | null;
   authorId: number;
   projectId: number;
+  validated: boolean;
   createdAt: Date;
 }

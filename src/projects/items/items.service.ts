@@ -3,7 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { handleError } from 'src/utils/handleError';
 import { ProjectItemEntity } from '../entities/project-item.entity';
 import { UpdateItemDto } from './dto/update-item-dto';
-import { projectItemRetrieveFormat } from 'src/utils/projectItemRetrieveFormat';
 
 @Injectable()
 export class ItemsService {
@@ -12,7 +11,21 @@ export class ItemsService {
   async findOne(id: number): Promise<{ item: Partial<ProjectItemEntity> }> {
     const itemFound = await this.prisma.projectItems.findUnique({
       where: { id },
-      select: projectItemRetrieveFormat(),
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        link: true,
+        associatedFile: true,
+        author: {
+          select: {
+            email: true,
+            firstName: true,
+            lastName: true,
+            profilePicture: true,
+          },
+        },
+      },
     });
 
     if (!itemFound)

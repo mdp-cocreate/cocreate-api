@@ -14,10 +14,10 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectEntity } from './entities/project.entity';
-import { ProjectFiltersDto } from './dto/project-filters-dto';
 import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
+import { AddUserDto } from './dto/add-user-dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard('jwt'))
@@ -33,18 +33,16 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll(
-    @Body() projectFiltersDto: ProjectFiltersDto
-  ): Promise<{ projects: ProjectEntity[] }> {
-    return this.projectsService.findAll(projectFiltersDto);
+  findAll(): Promise<{ projects: ProjectEntity[] }> {
+    return this.projectsService.findAll();
   }
 
   @Get(':id')
   findOne(
     @Param('id') id: string,
-    @Body() projectFiltersDto: ProjectFiltersDto
+    @Req() { user }: { user: UserEntity }
   ): Promise<{ project: ProjectEntity }> {
-    return this.projectsService.findOne(+id, projectFiltersDto);
+    return this.projectsService.findOne(+id, user.email);
   }
 
   @Patch(':id')
@@ -57,8 +55,20 @@ export class ProjectsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<{ project: ProjectEntity }> {
-    return this.projectsService.remove(+id);
+  remove(
+    @Param('id') id: string,
+    @Req() { user }: { user: UserEntity }
+  ): Promise<{ project: ProjectEntity }> {
+    return this.projectsService.remove(+id, user.email);
+  }
+
+  @Post(':id/add-user')
+  addUser(
+    @Param('id') id: string,
+    @Body() addUserDto: AddUserDto,
+    @Req() { user }: { user: UserEntity }
+  ) {
+    return this.projectsService.addUser(+id, addUserDto, user.email);
   }
 
   @Post(':id/items')
@@ -68,12 +78,5 @@ export class ProjectsController {
     @Req() { user }: { user: UserEntity }
   ): Promise<{ item: ProjectItemEntity }> {
     return this.projectsService.createItem(+id, createItemDto, user.email);
-  }
-
-  @Get(':id/items')
-  findAllItems(
-    @Param('id') id: string
-  ): Promise<{ items: Partial<ProjectItemEntity>[] }> {
-    return this.projectsService.findAllItems(+id);
   }
 }

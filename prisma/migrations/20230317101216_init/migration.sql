@@ -43,6 +43,7 @@ CREATE TABLE `ProjectItems` (
     `description` TEXT NULL,
     `link` VARCHAR(191) NULL,
     `associatedFile` LONGBLOB NULL,
+    `validated` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `authorId` INTEGER NOT NULL,
     `projectId` INTEGER NOT NULL,
