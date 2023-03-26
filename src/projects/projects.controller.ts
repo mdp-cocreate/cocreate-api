@@ -45,7 +45,6 @@ export class ProjectsController {
     return this.projectsService.findOne(+id, user.email);
   }
 
-  // Seuls les membres du projet en question ayant le rôle OWNER ou EDITOR peuvent modifier le projet
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -55,7 +54,6 @@ export class ProjectsController {
     return this.projectsService.update(+id, updateProjectDto, user.email);
   }
 
-  // Seul le membre du projet en question ayant le rôle OWNER peut supprimer le projet
   @Delete(':id')
   remove(
     @Param('id') id: string,
@@ -64,7 +62,6 @@ export class ProjectsController {
     return this.projectsService.remove(+id, user.email);
   }
 
-  // Seul le membre du projet en question ayant le rôle OWNER peut ajouter qqn au projet
   @Post(':id/add-user')
   addUser(
     @Param('id') id: string,
@@ -74,7 +71,6 @@ export class ProjectsController {
     return this.projectsService.addUser(+id, addUserDto, user.email);
   }
 
-  // Tous les utilisateurs peuvent contribuer à un projet (si public)
   @Post(':id/items')
   createItem(
     @Param('id') id: string,
