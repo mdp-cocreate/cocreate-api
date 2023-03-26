@@ -9,4 +9,5 @@ export class UserEntity implements Users {
   country: string | null;
   profilePicture: Buffer | null;
   registeredAt: Date;
+  resetPasswordToken: string | null;
 }

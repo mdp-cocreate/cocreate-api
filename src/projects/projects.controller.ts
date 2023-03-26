@@ -38,7 +38,7 @@ export class ProjectsController {
   }
 
   @Get(':id')
-  async findOne(
+  findOne(
     @Param('id') id: string,
     @Req() { user }: { user: UserEntity }
   ): Promise<{ project: ProjectEntity }> {
