@@ -1,9 +1,9 @@
 import { Body, Controller, Patch, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { SendValidationEmailDto } from './dto/send-validation-email.dto';
+import { SendResetPasswordEmailDto } from './dto/send-reset-password-email.dto';
+import { SendAccountValidationEmailDto } from './dto/send-account-validation-email.dto';
 import { SignupDto } from './dto/signup.dto';
 import { ValidateEmailDto } from './dto/validate-email.dto';
 
@@ -12,16 +12,16 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
-  async signup(@Body() signupDto: SignupDto): Promise<void> {
+  async signup(@Body() signupDto: SignupDto) {
     return await this.authService.signup(signupDto);
   }
 
-  @Post('send-validation-email')
-  async sendValidationEmail(
-    @Body() sendValidationEmailDto: SendValidationEmailDto
+  @Post('send-account-validation-email')
+  async sendAccountValidationEmail(
+    @Body() sendAccountValidationEmailDto: SendAccountValidationEmailDto
   ) {
     return await this.authService.sendAccountValidationEmail(
-      sendValidationEmailDto
+      sendAccountValidationEmailDto
     );
   }
 
@@ -35,13 +35,17 @@ export class AuthController {
     return await this.authService.login(loginDto);
   }
 
-  @Post('reset-password')
-  async resetPassword(@Body() { email }: ResetPasswordDto) {
-    return await this.authService.sendResetPasswordEmail(email);
+  @Post('send-reset-password-email')
+  async sendResetPasswordEmail(
+    @Body() sendResetPasswordEmailDto: SendResetPasswordEmailDto
+  ) {
+    return await this.authService.sendResetPasswordEmail(
+      sendResetPasswordEmailDto
+    );
   }
 
-  @Patch('change-password')
-  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
-    return await this.authService.changePassword(changePasswordDto);
+  @Patch('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return await this.authService.resetPassword(resetPasswordDto);
   }
 }

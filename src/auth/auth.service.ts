@@ -13,15 +13,16 @@ import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { handleError } from 'src/utils/handleError';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { SendValidationEmailDto } from './dto/send-validation-email.dto';
 import { ValidateEmailDto } from './dto/validate-email.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { SendAccountValidationEmailDto } from './dto/send-account-validation-email.dto';
+import { SendResetPasswordEmailDto } from './dto/send-reset-password-email.dto';
 
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
-  async signup(signupDto: SignupDto): Promise<void> {
+  async signup(signupDto: SignupDto) {
     const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT));
     const hash = await bcrypt.hash(signupDto.password, salt);
     const user = { ...signupDto, password: hash };
@@ -41,9 +42,7 @@ export class AuthService {
     }
   }
 
-  async sendAccountValidationEmail({
-    email,
-  }: SendValidationEmailDto): Promise<void> {
+  async sendAccountValidationEmail({ email }: SendAccountValidationEmailDto) {
     const user = await this.prisma.users.findUnique({
       where: {
         email,
@@ -93,7 +92,7 @@ export class AuthService {
     await transporter.sendMail(mailOptions);
   }
 
-  async validateEmail({ email, token }: ValidateEmailDto): Promise<void> {
+  async validateEmail({ email, token }: ValidateEmailDto) {
     const user = await this.prisma.users.findUnique({
       where: {
         email,
@@ -140,7 +139,7 @@ export class AuthService {
     return { accessToken };
   }
 
-  async sendResetPasswordEmail(email: string): Promise<void> {
+  async sendResetPasswordEmail({ email }: SendResetPasswordEmailDto) {
     const user = await this.prisma.users.findUnique({
       where: {
         email,
@@ -189,11 +188,7 @@ export class AuthService {
     await transporter.sendMail(mailOptions);
   }
 
-  async changePassword({
-    email,
-    newPassword,
-    token,
-  }: ChangePasswordDto): Promise<void> {
+  async resetPassword({ email, newPassword, token }: ResetPasswordDto) {
     const user = await this.prisma.users.findUnique({
       where: {
         email,
@@ -204,9 +199,7 @@ export class AuthService {
       },
     });
 
-    if (!user) throw new NotFoundException();
-
-    if (user.resetPasswordToken !== decodeURIComponent(token))
+    if (!user || user.resetPasswordToken !== decodeURIComponent(token))
       throw new UnauthorizedException();
 
     if (!user.isEmailValidated)
