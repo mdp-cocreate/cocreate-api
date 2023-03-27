@@ -1,5 +1,4 @@
 import { Body, Controller, Patch, Post } from '@nestjs/common';
-import { UserEntity } from 'src/users/entities/user.entity';
 import { AuthService } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -13,9 +12,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
-  async signup(
-    @Body() signupDto: SignupDto
-  ): Promise<{ user: Partial<UserEntity> }> {
+  async signup(@Body() signupDto: SignupDto): Promise<void> {
     return await this.authService.signup(signupDto);
   }
 

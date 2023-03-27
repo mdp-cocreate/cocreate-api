@@ -10,7 +10,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import { LoginDto } from './dto/login.dto';
-import { UserEntity } from 'src/users/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { handleError } from 'src/utils/handleError';
@@ -22,7 +21,7 @@ import { ValidateEmailDto } from './dto/validate-email.dto';
 export class AuthService {
   constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
-  async signup(signupDto: SignupDto): Promise<{ user: Partial<UserEntity> }> {
+  async signup(signupDto: SignupDto): Promise<void> {
     const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT));
     const hash = await bcrypt.hash(signupDto.password, salt);
     const user = { ...signupDto, password: hash };
@@ -36,13 +35,7 @@ export class AuthService {
         },
       });
 
-      await this.sendAccountValidationEmail({ email: signupDto.email });
-
-      return {
-        user: {
-          email: newUser.email,
-        },
-      };
+      await this.sendAccountValidationEmail({ email: newUser.email });
     } catch (e: unknown) {
       throw handleError(e);
     }
@@ -61,6 +54,7 @@ export class AuthService {
     });
 
     if (!user) throw new NotFoundException();
+
     if (user.isEmailValidated)
       throw new ConflictException('this account has already been validated');
 
@@ -111,9 +105,11 @@ export class AuthService {
     });
 
     if (!user) throw new NotFoundException();
-    else if (user.isEmailValidated)
+
+    if (user.isEmailValidated)
       throw new ConflictException('this account has already been validated');
-    else if (user.validateEmailToken !== decodeURIComponent(token))
+
+    if (user.validateEmailToken !== decodeURIComponent(token))
       throw new UnauthorizedException();
 
     await this.prisma.users.update({
@@ -209,10 +205,12 @@ export class AuthService {
     });
 
     if (!user) throw new NotFoundException();
-    else if (!user.isEmailValidated)
-      throw new ForbiddenException('you must validate your email before');
-    else if (user.resetPasswordToken !== decodeURIComponent(token))
+
+    if (user.resetPasswordToken !== decodeURIComponent(token))
       throw new UnauthorizedException();
+
+    if (!user.isEmailValidated)
+      throw new ForbiddenException('you must validate your email before');
 
     const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT));
     const hash = await bcrypt.hash(newPassword, salt);
