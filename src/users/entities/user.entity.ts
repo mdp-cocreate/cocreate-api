@@ -9,5 +9,7 @@ export class UserEntity implements Users {
   country: string | null;
   profilePicture: Buffer | null;
   registeredAt: Date;
+  validateEmailToken: string | null;
+  isEmailValidated: boolean;
   resetPasswordToken: string | null;
 }

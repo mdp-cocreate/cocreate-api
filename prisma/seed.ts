@@ -46,6 +46,7 @@ const upsertUsers = async () => {
       domains: {
         connect: [{ name: Domain.DEVELOPMENT }, { name: Domain.DESIGN }],
       },
+      isEmailValidated: true,
     },
   });
 

@@ -20,6 +20,8 @@ model Users {
   domains            Domains[]
   contributions      ProjectItems[]
   actions            Actions[]
+  isEmailValidated   Boolean             @default(false)
+  validateEmailToken String?
   resetPasswordToken String?
 }
 
