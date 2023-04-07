@@ -12,7 +12,7 @@ import { UpdateItemDto } from './dto/update-item-dto';
 import { ProjectItemEntity } from '../entities/project-item.entity';
 import { ItemsService } from './items.service';
 import { AuthGuard } from '@nestjs/passport';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { UserEntityWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
 
 @Controller('projects/items')
 @UseGuards(AuthGuard('jwt'))
@@ -30,7 +30,7 @@ export class ItemsController {
   update(
     @Param('id') id: string,
     @Body() updateItemDto: UpdateItemDto,
-    @Req() { user }: { user: UserEntity }
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ): Promise<{ item: ProjectItemEntity }> {
     return this.itemsService.update(+id, updateItemDto, user.email);
   }
@@ -38,7 +38,7 @@ export class ItemsController {
   @Delete(':id')
   remove(
     @Param('id') id: string,
-    @Req() { user }: { user: UserEntity }
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ): Promise<{ item: ProjectItemEntity }> {
     return this.itemsService.remove(+id, user.email);
   }

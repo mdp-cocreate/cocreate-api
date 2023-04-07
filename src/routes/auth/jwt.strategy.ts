@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { UserEntityWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
 import { jwtConstants } from './constants';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 
@@ -15,12 +16,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate({ email }: JwtPayload): Promise<UserEntity> {
-    const user = await this.prisma.users.findUnique({
+  async validate({
+    email,
+  }: JwtPayload): Promise<UserEntityWithoutSensitiveData> {
+    const userFound = await this.prisma.users.findUnique({
       where: { email },
     });
 
-    if (!user) throw new UnauthorizedException();
-    return user;
+    if (!userFound) throw new UnauthorizedException();
+
+    const {
+      password,
+      resetPasswordToken,
+      validateEmailToken,
+      isEmailValidated,
+      ...formattedUser
+    } = userFound;
+
+    return formattedUser;
   }
 }

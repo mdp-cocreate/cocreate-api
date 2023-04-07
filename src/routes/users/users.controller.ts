@@ -7,10 +7,11 @@ import {
   Delete,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserEntity } from './entities/user.entity';
+import { UserEntityWithoutSensitiveData } from './entities/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { UserQueryDto } from './dto/user-query-dto';
 
@@ -22,7 +23,7 @@ export class UsersController {
   @Get()
   async findAll(
     @Query() userQueryDto: UserQueryDto
-  ): Promise<{ users: UserEntity[] }> {
+  ): Promise<{ users: UserEntityWithoutSensitiveData[] }> {
     return await this.usersService.findAll(userQueryDto);
   }
 
@@ -30,20 +31,24 @@ export class UsersController {
   async findOne(
     @Param('email') email: string,
     @Query() userQueryDto: UserQueryDto
-  ): Promise<{ user: UserEntity }> {
+  ): Promise<{ user: UserEntityWithoutSensitiveData }> {
     return await this.usersService.findOne(email, userQueryDto);
   }
 
   @Patch(':email')
   async update(
     @Param('email') email: string,
-    @Body() updateUserDto: UpdateUserDto
-  ): Promise<{ user: UserEntity }> {
-    return await this.usersService.update(email, updateUserDto);
+    @Body() updateUserDto: UpdateUserDto,
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+  ): Promise<{ user: UserEntityWithoutSensitiveData }> {
+    return await this.usersService.update(email, updateUserDto, user.email);
   }
 
   @Delete(':email')
-  async remove(@Param('email') email: string): Promise<{ user: UserEntity }> {
-    return await this.usersService.remove(email);
+  async remove(
+    @Param('email') email: string,
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+  ) {
+    return await this.usersService.remove(email, user.email);
   }
 }
