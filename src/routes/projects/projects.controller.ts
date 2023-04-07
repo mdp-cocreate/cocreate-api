@@ -16,7 +16,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectEntity } from './entities/project.entity';
 import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
-import { UserEntity } from 'src/users/entities/user.entity';
+import { UserEntityWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
 import { AddUserDto } from './dto/add-user-dto';
 
 @Controller('projects')
@@ -27,7 +27,7 @@ export class ProjectsController {
   @Post()
   create(
     @Body() createProjectDto: CreateProjectDto,
-    @Req() { user }: { user: UserEntity }
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ): Promise<{ project: ProjectEntity }> {
     return this.projectsService.create(createProjectDto, user.email);
   }
@@ -40,7 +40,7 @@ export class ProjectsController {
   @Get(':id')
   findOne(
     @Param('id') id: string,
-    @Req() { user }: { user: UserEntity }
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ): Promise<{ project: ProjectEntity }> {
     return this.projectsService.findOne(+id, user.email);
   }
@@ -49,7 +49,7 @@ export class ProjectsController {
   update(
     @Param('id') id: string,
     @Body() updateProjectDto: UpdateProjectDto,
-    @Req() { user }: { user: UserEntity }
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ): Promise<{ project: ProjectEntity }> {
     return this.projectsService.update(+id, updateProjectDto, user.email);
   }
@@ -57,7 +57,7 @@ export class ProjectsController {
   @Delete(':id')
   remove(
     @Param('id') id: string,
-    @Req() { user }: { user: UserEntity }
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ): Promise<{ project: ProjectEntity }> {
     return this.projectsService.remove(+id, user.email);
   }
@@ -66,7 +66,7 @@ export class ProjectsController {
   addUser(
     @Param('id') id: string,
     @Body() addUserDto: AddUserDto,
-    @Req() { user }: { user: UserEntity }
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ) {
     return this.projectsService.addUser(+id, addUserDto, user.email);
   }
@@ -75,7 +75,7 @@ export class ProjectsController {
   createItem(
     @Param('id') id: string,
     @Body() createItemDto: CreateItemDto,
-    @Req() { user }: { user: UserEntity }
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ): Promise<{ item: ProjectItemEntity }> {
     return this.projectsService.createItem(+id, createItemDto, user.email);
   }

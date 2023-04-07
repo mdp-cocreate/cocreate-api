@@ -9,7 +9,14 @@ export class UserEntity implements Users {
   country: string | null;
   profilePicture: Buffer | null;
   registeredAt: Date;
-  validateEmailToken: string | null;
   isEmailValidated: boolean;
+  validateEmailToken: string | null;
   resetPasswordToken: string | null;
 }
+
+type SensitiveData = 'password' | 'validateEmailToken' | 'resetPasswordToken';
+
+export type UserEntityWithoutSensitiveData = Omit<
+  UserEntity,
+  SensitiveData | 'isEmailValidated'
+>;
