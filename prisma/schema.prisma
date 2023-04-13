@@ -18,6 +18,7 @@ model Users {
   registeredAt       DateTime            @default(now())
   projects           ProjectsToMembers[]
   domains            Domains[]
+  skills             Json
   contributions      ProjectItems[]
   actions            Actions[]
   isEmailValidated   Boolean             @default(false)

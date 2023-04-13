@@ -1,4 +1,4 @@
-import { Users } from '@prisma/client';
+import { Prisma, Users } from '@prisma/client';
 
 export class UserEntity implements Users {
   id: number;
@@ -8,6 +8,7 @@ export class UserEntity implements Users {
   lastName: string;
   country: string | null;
   profilePicture: Buffer | null;
+  skills: Prisma.JsonValue;
   registeredAt: Date;
   isEmailValidated: boolean;
   validateEmailToken: string | null;

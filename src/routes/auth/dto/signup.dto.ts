@@ -38,4 +38,7 @@ export class SignupDto {
 
   @IsEnum(Domain, { each: true })
   domains: Domain[];
+
+  @IsString({ each: true })
+  skills: string[];
 }

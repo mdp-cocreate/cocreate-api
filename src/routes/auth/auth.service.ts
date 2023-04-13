@@ -28,10 +28,11 @@ export class AuthService {
     const user = { ...signupDto, password: hash };
 
     try {
-      const { domains, ...data } = user;
+      const { domains, skills, ...data } = user;
       const newUser = await this.prisma.users.create({
         data: {
           ...data,
+          skills: JSON.stringify(skills),
           domains: { connect: domains.map((domain) => ({ name: domain })) },
         },
       });

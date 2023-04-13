@@ -4,8 +4,12 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './routes/users/users.module';
 import { AuthModule } from './routes/auth/auth.module';
 import { ProjectsModule } from './routes/projects/projects.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
+  controllers: [AppController],
+  providers: [AppService],
   imports: [
     ConfigModule.forRoot({
       envFilePath: ['.env.development', '.env'],
