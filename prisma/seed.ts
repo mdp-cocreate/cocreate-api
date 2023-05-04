@@ -4,6 +4,13 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 const upsertDomains = async () => {
+  const uxuiDesign = await prisma.domains.upsert({
+    where: { name: 'UXUI_DESIGN' },
+    update: {},
+    create: {
+      name: 'UXUI_DESIGN',
+    },
+  });
   const development = await prisma.domains.upsert({
     where: { name: 'DEVELOPMENT' },
     update: {},
@@ -11,23 +18,52 @@ const upsertDomains = async () => {
       name: 'DEVELOPMENT',
     },
   });
-  const design = await prisma.domains.upsert({
-    where: { name: 'DESIGN' },
+  const graphicDesign = await prisma.domains.upsert({
+    where: { name: 'GRAPHIC_DESIGN' },
     update: {},
     create: {
-      name: 'DESIGN',
+      name: 'GRAPHIC_DESIGN',
     },
   });
-  const marketing = await prisma.domains.upsert({
-    where: { name: 'MARKETING' },
+  const webmarketing = await prisma.domains.upsert({
+    where: { name: 'WEBMARKETING' },
     update: {},
     create: {
-      name: 'MARKETING',
+      name: 'WEBMARKETING',
+    },
+  });
+  const cybersecurity = await prisma.domains.upsert({
+    where: { name: 'CYBERSECURITY' },
+    update: {},
+    create: {
+      name: 'CYBERSECURITY',
+    },
+  });
+  const data = await prisma.domains.upsert({
+    where: { name: 'DATA' },
+    update: {},
+    create: {
+      name: 'DATA',
+    },
+  });
+  const audiovisual = await prisma.domains.upsert({
+    where: { name: 'AUDIOVISUAL' },
+    update: {},
+    create: {
+      name: 'AUDIOVISUAL',
     },
   });
 
   // eslint-disable-next-line no-console
-  console.log('\ndomains:', [development, design, marketing]);
+  console.log('\ndomains:', [
+    uxuiDesign,
+    development,
+    graphicDesign,
+    webmarketing,
+    cybersecurity,
+    data,
+    audiovisual,
+  ]);
 };
 
 const upsertUsers = async () => {
@@ -44,7 +80,7 @@ const upsertUsers = async () => {
       lastName: 'Cresson',
       country: 'France',
       domains: {
-        connect: [{ name: Domain.DEVELOPMENT }, { name: Domain.DESIGN }],
+        connect: [{ name: Domain.DEVELOPMENT }, { name: Domain.UXUI_DESIGN }],
       },
       skills: JSON.stringify(['Typescript', 'Next.js', 'Nest.js']),
       isEmailValidated: true,
@@ -66,8 +102,8 @@ const upsertProjects = async () => {
       domains: {
         connect: [
           { name: Domain.DEVELOPMENT },
-          { name: Domain.DESIGN },
-          { name: Domain.MARKETING },
+          { name: Domain.UXUI_DESIGN },
+          { name: Domain.WEBMARKETING },
         ],
       },
       members: {

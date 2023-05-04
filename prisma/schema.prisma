@@ -83,9 +83,13 @@ model Actions {
 }
 
 enum Domain {
+  UXUI_DESIGN
   DEVELOPMENT
-  DESIGN
-  MARKETING
+  GRAPHIC_DESIGN
+  WEBMARKETING
+  CYBERSECURITY
+  DATA
+  AUDIOVISUAL
 }
 
 enum Role {
