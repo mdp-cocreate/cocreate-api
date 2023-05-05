@@ -86,9 +86,25 @@ const upsertUsers = async () => {
       isEmailValidated: true,
     },
   });
+  const admin_bis = await prisma.users.upsert({
+    where: { email: 'edgar.cresson@hotmail.com' },
+    update: {},
+    create: {
+      email: 'edgar.cresson@hotmail.com',
+      password: hash,
+      firstName: 'Edgar',
+      lastName: 'Cresson',
+      country: 'France',
+      domains: {
+        connect: [{ name: Domain.CYBERSECURITY }, { name: Domain.DATA }],
+      },
+      skills: JSON.stringify(['Typescript', 'Next.js', 'Nest.js']),
+      isEmailValidated: true,
+    },
+  });
 
   // eslint-disable-next-line no-console
-  console.log('\nusers:', [admin]);
+  console.log('\nusers:', [admin, admin_bis]);
 };
 
 const upsertProjects = async () => {
@@ -97,6 +113,7 @@ const upsertProjects = async () => {
     update: {},
     create: {
       name: 'Projet "Cocreate"',
+      shortDescription: 'Courte description du projet',
       description:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
       domains: {
@@ -121,8 +138,213 @@ const upsertProjects = async () => {
     },
   });
 
+  const uiuxDesignProject = await prisma.projects.upsert({
+    where: {
+      name: 'UI/UX design project',
+    },
+    update: {},
+    create: {
+      name: 'UI/UX design project',
+      shortDescription: 'Courte description du projet',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      domains: {
+        connect: [{ name: Domain.UXUI_DESIGN }],
+      },
+      members: {
+        create: [
+          {
+            role: Role.OWNER,
+            user: {
+              connect: {
+                email: 'edgar.cresson@hotmail.com',
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  const developmentProject = await prisma.projects.upsert({
+    where: {
+      name: 'Development project',
+    },
+    update: {},
+    create: {
+      name: 'Development project',
+      shortDescription: 'Courte description du projet',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      domains: {
+        connect: [{ name: Domain.DEVELOPMENT }],
+      },
+      members: {
+        create: [
+          {
+            role: Role.OWNER,
+            user: {
+              connect: {
+                email: 'edgar.cresson@hotmail.com',
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  const graphicDesignProject = await prisma.projects.upsert({
+    where: {
+      name: 'Graphic design project',
+    },
+    update: {},
+    create: {
+      name: 'Graphic design project',
+      shortDescription: 'Courte description du projet',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      domains: {
+        connect: [{ name: Domain.GRAPHIC_DESIGN }],
+      },
+      members: {
+        create: [
+          {
+            role: Role.OWNER,
+            user: {
+              connect: {
+                email: 'edgar.cresson@hotmail.com',
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  const webmarketingProject = await prisma.projects.upsert({
+    where: {
+      name: 'Webmarketing project',
+    },
+    update: {},
+    create: {
+      name: 'Webmarketing project',
+      shortDescription: 'Courte description du projet',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      domains: {
+        connect: [{ name: Domain.WEBMARKETING }],
+      },
+      members: {
+        create: [
+          {
+            role: Role.OWNER,
+            user: {
+              connect: {
+                email: 'edgar.cresson@hotmail.com',
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  const cybersecurityProject = await prisma.projects.upsert({
+    where: {
+      name: 'Cybersecurity project',
+    },
+    update: {},
+    create: {
+      name: 'Cybersecurity project',
+      shortDescription: 'Courte description du projet',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      domains: {
+        connect: [{ name: Domain.CYBERSECURITY }],
+      },
+      members: {
+        create: [
+          {
+            role: Role.OWNER,
+            user: {
+              connect: {
+                email: 'edgar.cresson@hotmail.com',
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  const dataProject = await prisma.projects.upsert({
+    where: {
+      name: 'Data project',
+    },
+    update: {},
+    create: {
+      name: 'Data project',
+      shortDescription: 'Courte description du projet',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      domains: {
+        connect: [{ name: Domain.DATA }],
+      },
+      members: {
+        create: [
+          {
+            role: Role.OWNER,
+            user: {
+              connect: {
+                email: 'edgar.cresson@hotmail.com',
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  const audiovisualProject = await prisma.projects.upsert({
+    where: {
+      name: 'Audiovisual project',
+    },
+    update: {},
+    create: {
+      name: 'Audiovisual project',
+      shortDescription: 'Courte description du projet',
+      description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      domains: {
+        connect: [{ name: Domain.AUDIOVISUAL }],
+      },
+      members: {
+        create: [
+          {
+            role: Role.OWNER,
+            user: {
+              connect: {
+                email: 'edgar.cresson@hotmail.com',
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+
   // eslint-disable-next-line no-console
-  console.log('\nprojects:', [project]);
+  console.log('\nprojects:', [
+    project,
+    uiuxDesignProject,
+    developmentProject,
+    graphicDesignProject,
+    webmarketingProject,
+    cybersecurityProject,
+    dataProject,
+    audiovisualProject,
+  ]);
 };
 
 const upsertProjectsItems = async () => {

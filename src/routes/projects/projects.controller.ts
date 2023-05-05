@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ProjectsService } from './projects.service';
@@ -18,6 +19,7 @@ import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 import { UserEntityWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
 import { AddUserDto } from './dto/add-user-dto';
+import { ProjectPreviewEntity } from './entities/project-preview.entity';
 
 @Controller('projects')
 @UseGuards(AuthGuard('jwt'))
@@ -35,6 +37,19 @@ export class ProjectsController {
   @Get()
   findAll(): Promise<{ projects: ProjectEntity[] }> {
     return this.projectsService.findAll();
+  }
+
+  @Get('previews')
+  findPreviewsThatMatchTheUsersDomains(
+    @Query('skip') skip = 0,
+    @Query('take') take = 5,
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+  ): Promise<{ previews: ProjectPreviewEntity[] }> {
+    return this.projectsService.findPreviewsThatMatchTheUsersDomains(
+      +skip,
+      +take,
+      user
+    );
   }
 
   @Get(':id')

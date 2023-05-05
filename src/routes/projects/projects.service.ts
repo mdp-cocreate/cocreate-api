@@ -13,6 +13,8 @@ import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 import { handleError } from 'src/utils/handleError';
 import { AddUserDto } from './dto/add-user-dto';
+import { ProjectPreviewEntity } from './entities/project-preview.entity';
+import { UserEntityWithoutSensitiveData } from '../users/entities/user.entity';
 
 @Injectable()
 export class ProjectsService {
@@ -112,6 +114,72 @@ export class ProjectsService {
     });
 
     return { projects };
+  }
+
+  async findPreviewsThatMatchTheUsersDomains(
+    skip: number,
+    take: number,
+    user: UserEntityWithoutSensitiveData
+  ): Promise<{ previews: ProjectPreviewEntity[] }> {
+    const userDomains = await this.prisma.users.findUnique({
+      where: { id: user.id },
+      select: {
+        domains: true,
+      },
+    });
+
+    if (!userDomains?.domains)
+      throw new InternalServerErrorException('current user has no domain');
+
+    const previews = await this.prisma.projects.findMany({
+      where: {
+        public: true,
+        domains: {
+          some: {
+            name: { in: userDomains.domains.map((domain) => domain.name) },
+          },
+        },
+        NOT: {
+          members: {
+            some: {
+              userId: {
+                equals: user.id,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        shortDescription: true,
+        createdAt: true,
+        coverImage: true,
+        members: {
+          select: {
+            user: {
+              select: {
+                profilePicture: true,
+              },
+            },
+          },
+        },
+      },
+      skip,
+      take,
+    });
+
+    const formattedPreviews = previews.map((preview) => {
+      const membersWithProfilePictures = preview.members.map((member) => ({
+        profilePicture: member.user.profilePicture,
+      }));
+      return {
+        ...preview,
+        members: membersWithProfilePictures,
+      };
+    });
+
+    return { previews: formattedPreviews };
   }
 
   async findOne(

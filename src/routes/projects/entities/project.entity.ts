@@ -4,6 +4,7 @@ export class ProjectEntity implements Projects {
   id: number;
   name: string;
   description: string | null;
+  shortDescription: string | null;
   coverImage: Buffer | null;
   public: boolean;
   createdAt: Date;
