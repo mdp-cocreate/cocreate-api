@@ -40,15 +40,28 @@ export class ProjectsController {
   }
 
   @Get('previews')
-  findPreviewsThatMatchTheUsersDomains(
+  findProjectPreviewsThatMatchTheUsersDomains(
     @Query('skip') skip = 0,
     @Query('take') take = 5,
     @Req() { user }: { user: UserEntityWithoutSensitiveData }
   ): Promise<{ previews: ProjectPreviewEntity[] }> {
-    return this.projectsService.findPreviewsThatMatchTheUsersDomains(
+    return this.projectsService.findProjectPreviewsThatMatchTheUsersDomains(
       +skip,
       +take,
       user
+    );
+  }
+
+  @Get('current-user')
+  findCurrentUsersProjectPreviews(
+    @Query('skip') skip = 0,
+    @Query('take') take = 5,
+    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+  ): Promise<{ previews: ProjectPreviewEntity[] }> {
+    return this.projectsService.findCurrentUsersProjectPreviews(
+      +skip,
+      +take,
+      user.id
     );
   }
 

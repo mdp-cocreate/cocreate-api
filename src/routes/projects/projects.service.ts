@@ -117,7 +117,7 @@ export class ProjectsService {
     return { projects };
   }
 
-  async findPreviewsThatMatchTheUsersDomains(
+  async findProjectPreviewsThatMatchTheUsersDomains(
     skip: number,
     take: number,
     user: UserEntityWithoutSensitiveData
@@ -193,6 +193,67 @@ export class ProjectsService {
         };
       }
     );
+
+    return { previews: formattedPreviews };
+  }
+
+  async findCurrentUsersProjectPreviews(
+    skip: number,
+    take: number,
+    userId: number
+  ): Promise<{ previews: ProjectPreviewEntity[] }> {
+    const previews = await this.prisma.projectsToMembers.findMany({
+      where: {
+        userId: userId,
+        role: Role.OWNER,
+      },
+      select: {
+        project: {
+          select: {
+            id: true,
+            name: true,
+            shortDescription: true,
+            createdAt: true,
+            coverImage: true,
+            members: {
+              select: {
+                role: true,
+                user: {
+                  select: {
+                    id: true,
+                    profilePicture: true,
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      take,
+      skip,
+    });
+
+    const formattedPreviews: ProjectPreviewEntity[] = previews
+      .map(({ project }) => project)
+      .map((preview) => {
+        return {
+          ...preview,
+          coverImage: preview.coverImage
+            ? bufferToImgSrc(preview.coverImage)
+            : null,
+          members: preview.members.map((member) => ({
+            ...member,
+            user: {
+              ...member.user,
+              profilePicture: member.user.profilePicture
+                ? bufferToImgSrc(member.user.profilePicture)
+                : null,
+            },
+          })),
+        };
+      });
 
     return { previews: formattedPreviews };
   }
