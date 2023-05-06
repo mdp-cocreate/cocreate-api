@@ -15,6 +15,7 @@ import { handleError } from 'src/utils/handleError';
 import { AddUserDto } from './dto/add-user-dto';
 import { ProjectPreviewEntity } from './entities/project-preview.entity';
 import { UserEntityWithoutSensitiveData } from '../users/entities/user.entity';
+import { bufferToImgSrc } from 'src/utils/bufferToImgSrc';
 
 @Injectable()
 export class ProjectsService {
@@ -157,9 +158,13 @@ export class ProjectsService {
         coverImage: true,
         members: {
           select: {
+            role: true,
             user: {
               select: {
+                id: true,
                 profilePicture: true,
+                firstName: true,
+                lastName: true,
               },
             },
           },
@@ -169,15 +174,25 @@ export class ProjectsService {
       take,
     });
 
-    const formattedPreviews = previews.map((preview) => {
-      const membersWithProfilePictures = preview.members.map((member) => ({
-        profilePicture: member.user.profilePicture,
-      }));
-      return {
-        ...preview,
-        members: membersWithProfilePictures,
-      };
-    });
+    const formattedPreviews: ProjectPreviewEntity[] = previews.map(
+      (preview) => {
+        return {
+          ...preview,
+          coverImage: preview.coverImage
+            ? bufferToImgSrc(preview.coverImage)
+            : null,
+          members: preview.members.map((member) => ({
+            ...member,
+            user: {
+              ...member.user,
+              profilePicture: member.user.profilePicture
+                ? bufferToImgSrc(member.user.profilePicture)
+                : null,
+            },
+          })),
+        };
+      }
+    );
 
     return { previews: formattedPreviews };
   }
