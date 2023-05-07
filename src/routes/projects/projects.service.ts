@@ -8,7 +8,12 @@ import { Role } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ProjectEntity } from './entities/project.entity';
+import {
+  FormattedRetrievedProject,
+  FormattedRetrievedProjectMember,
+  ProjectEntity,
+  RetrievedProject,
+} from './entities/project.entity';
 import { CreateItemDto } from './dto/create-item-dto';
 import { ProjectItemEntity } from './entities/project-item.entity';
 import { handleError } from 'src/utils/handleError';
@@ -197,15 +202,80 @@ export class ProjectsService {
     return { previews: formattedPreviews };
   }
 
-  async findCurrentUsersProjectPreviews(
+  async findProjectPreviewsThatTheUserOwns(
+    userId: number | undefined,
     skip: number,
     take: number,
-    userId: number
+    authorId: number
   ): Promise<{ previews: ProjectPreviewEntity[] }> {
     const previews = await this.prisma.projectsToMembers.findMany({
       where: {
-        userId: userId,
+        userId: userId || authorId,
         role: Role.OWNER,
+      },
+      select: {
+        project: {
+          select: {
+            id: true,
+            name: true,
+            shortDescription: true,
+            createdAt: true,
+            coverImage: true,
+            members: {
+              select: {
+                role: true,
+                user: {
+                  select: {
+                    id: true,
+                    profilePicture: true,
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      take,
+      skip,
+    });
+
+    const formattedPreviews: ProjectPreviewEntity[] = previews
+      .map(({ project }) => project)
+      .map((preview) => {
+        return {
+          ...preview,
+          coverImage: preview.coverImage
+            ? bufferToImgSrc(preview.coverImage)
+            : null,
+          members: preview.members.map((member) => ({
+            ...member,
+            user: {
+              ...member.user,
+              profilePicture: member.user.profilePicture
+                ? bufferToImgSrc(member.user.profilePicture)
+                : null,
+            },
+          })),
+        };
+      });
+
+    return { previews: formattedPreviews };
+  }
+
+  async findProjectPreviewsOfWhichTheUserIsAMember(
+    userId: number | undefined,
+    skip: number,
+    take: number,
+    authorId: number
+  ): Promise<{ previews: ProjectPreviewEntity[] }> {
+    const previews = await this.prisma.projectsToMembers.findMany({
+      where: {
+        userId: userId || authorId,
+        NOT: {
+          role: Role.OWNER,
+        },
       },
       select: {
         project: {
@@ -260,75 +330,66 @@ export class ProjectsService {
 
   async findOne(
     id: number,
-    authorEmail: string
-  ): Promise<{ project: ProjectEntity }> {
-    const projectFound = await this.prisma.projects.findUnique({
-      where: { id },
-      include: {
-        domains: true,
-        members: {
-          select: {
-            role: true,
-            addedAt: true,
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                country: true,
-                profilePicture: true,
-                registeredAt: true,
+    userId: number
+  ): Promise<{
+    project: FormattedRetrievedProject;
+    currentUserRole: Role | null;
+  }> {
+    const projectFound: RetrievedProject | null =
+      await this.prisma.projects.findUnique({
+        where: { id },
+        include: {
+          domains: true,
+          members: {
+            select: {
+              role: true,
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  profilePicture: true,
+                },
               },
             },
           },
         },
-        items: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            link: true,
-            associatedFile: true,
-            author: {
-              select: {
-                email: true,
-                firstName: true,
-                lastName: true,
-                profilePicture: true,
-              },
-            },
-          },
-        },
-        actions: {
-          select: {
-            author: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
-            name: true,
-            createdAt: true,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-      },
-    });
+      });
 
     if (!projectFound)
       throw new NotFoundException(`project with id "${id}" does not exist`);
 
     if (
       !projectFound.public &&
-      !projectFound.members.some((member) => member.user.email === authorEmail)
+      !projectFound.members.some((member) => member.user.id === userId)
     ) {
       throw new ForbiddenException('this project is private');
     }
 
-    return { project: projectFound };
+    const formattedProjectMembersFound: FormattedRetrievedProjectMember[] =
+      projectFound.members.map((member) => ({
+        ...member,
+        user: {
+          ...member.user,
+          profilePicture: member.user.profilePicture
+            ? bufferToImgSrc(member.user.profilePicture)
+            : null,
+        },
+      }));
+
+    const formattedProjectFound: FormattedRetrievedProject = {
+      ...projectFound,
+      coverImage: projectFound.coverImage
+        ? bufferToImgSrc(projectFound.coverImage)
+        : null,
+      members: formattedProjectMembersFound,
+    };
+
+    const currentUserRole =
+      projectFound.members.find((member) => member.user.id === userId)?.role ||
+      null;
+
+    return { project: formattedProjectFound, currentUserRole };
   }
 
   async update(

@@ -6,29 +6,21 @@ import {
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserEntityWithoutSensitiveData } from './entities/user.entity';
-import { UserQueryDto } from './dto/user-query-dto';
+import {
+  FormattedUserEntityWithoutSensitiveData,
+  UserEntityWithoutSensitiveData,
+} from './entities/user.entity';
 import { handleError } from 'src/utils/handleError';
+import { bufferToImgSrc } from 'src/utils/bufferToImgSrc';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll({
-    domains = false,
-    projects = false,
-    contributions = false,
-    actions = false,
-  }: UserQueryDto): Promise<{ users: UserEntityWithoutSensitiveData[] }> {
+  async findAll(): Promise<{ users: UserEntityWithoutSensitiveData[] }> {
     const usersFound = await this.prisma.users.findMany({
       where: {
         isEmailValidated: true,
-      },
-      include: {
-        domains,
-        projects,
-        contributions,
-        actions,
       },
     });
 
@@ -48,45 +40,60 @@ export class UsersService {
     return { users };
   }
 
-  async findOne(
-    email: string,
-    {
-      domains = false,
-      projects = false,
-      contributions = false,
-      actions = false,
-    }: UserQueryDto
-  ): Promise<{ user: UserEntityWithoutSensitiveData }> {
+  async retrieveUserProfileById(
+    userId: number,
+    author: UserEntityWithoutSensitiveData
+  ): Promise<{
+    user: FormattedUserEntityWithoutSensitiveData;
+    isItTheUserHimself: boolean;
+  }> {
+    const isItTheUserHimself = userId === author.id;
+    if (isItTheUserHimself) {
+      const formattedAuthor: FormattedUserEntityWithoutSensitiveData = {
+        ...author,
+        profilePicture: author.profilePicture
+          ? bufferToImgSrc(author.profilePicture)
+          : null,
+      };
+      return { user: formattedAuthor, isItTheUserHimself };
+    }
+
     const userFound = await this.prisma.users.findUnique({
-      where: { email },
-      include: { domains, projects, contributions, actions },
+      where: { id: userId },
     });
 
     if (!userFound || !userFound?.isEmailValidated)
-      throw new NotFoundException(`user with email "${email}" does not exist`);
+      throw new NotFoundException(`user with id "${userId}" does not exist`);
 
     const {
       password,
       resetPasswordToken,
       validateEmailToken,
       isEmailValidated,
-      ...formattedUser
+      ...formattedUserFound
     } = userFound;
 
-    return { user: formattedUser };
+    const formattedUser: FormattedUserEntityWithoutSensitiveData = {
+      ...formattedUserFound,
+      profilePicture: formattedUserFound.profilePicture
+        ? bufferToImgSrc(formattedUserFound.profilePicture)
+        : null,
+    };
+
+    return { user: formattedUser, isItTheUserHimself };
   }
 
   async update(
-    email: string,
+    id: number,
     updateUserDto: UpdateUserDto,
-    authorEmail: string
+    authorId: number
   ): Promise<{ user: UserEntityWithoutSensitiveData }> {
     const { domains, ...data } = updateUserDto;
 
     const userToUpdate = await this.prisma.users.findUnique({
-      where: { email },
+      where: { id },
       select: {
-        email: true,
+        id: true,
         isEmailValidated: true,
       },
     });
@@ -94,11 +101,11 @@ export class UsersService {
     if (!userToUpdate || !userToUpdate.isEmailValidated)
       throw new NotFoundException();
 
-    if (userToUpdate.email !== authorEmail) throw new ForbiddenException();
+    if (userToUpdate.id !== authorId) throw new ForbiddenException();
 
     try {
       const userUpdated = await this.prisma.users.update({
-        where: { email },
+        where: { id },
         include: {
           domains: true,
           // projects: true,
@@ -127,11 +134,11 @@ export class UsersService {
     }
   }
 
-  async remove(email: string, authorEmail: string) {
+  async remove(id: number, authorId: number) {
     const userToDelete = await this.prisma.users.findUnique({
-      where: { email },
+      where: { id },
       select: {
-        email: true,
+        id: true,
         isEmailValidated: true,
       },
     });
@@ -139,11 +146,11 @@ export class UsersService {
     if (!userToDelete || !userToDelete.isEmailValidated)
       throw new NotFoundException();
 
-    if (userToDelete.email !== authorEmail) throw new ForbiddenException();
+    if (userToDelete.id !== authorId) throw new ForbiddenException();
 
     try {
       await this.prisma.users.delete({
-        where: { email },
+        where: { id },
       });
     } catch (e: unknown) {
       throw handleError(e);

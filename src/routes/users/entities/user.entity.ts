@@ -21,3 +21,10 @@ export type UserEntityWithoutSensitiveData = Omit<
   UserEntity,
   SensitiveData | 'isEmailValidated'
 >;
+
+export type FormattedUserEntityWithoutSensitiveData = Omit<
+  UserEntityWithoutSensitiveData,
+  'profilePicture'
+> & {
+  profilePicture: string | null;
+};

@@ -1,4 +1,4 @@
-import { Projects } from '@prisma/client';
+import { Domains, Projects, Role } from '@prisma/client';
 
 export class ProjectEntity implements Projects {
   id: number;
@@ -10,3 +10,36 @@ export class ProjectEntity implements Projects {
   createdAt: Date;
   updatedAt: Date;
 }
+
+type RetrievedProjectMember = {
+  role: Role;
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    profilePicture: Buffer | null;
+  };
+};
+
+export type FormattedRetrievedProjectMember = {
+  role: Role;
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    profilePicture: string | null;
+  };
+};
+
+export type RetrievedProject = ProjectEntity & {
+  domains: Domains[];
+  members: RetrievedProjectMember[];
+};
+
+export type FormattedRetrievedProject = Omit<
+  RetrievedProject,
+  'coverImage' | 'members'
+> & {
+  coverImage: string | null;
+  members: FormattedRetrievedProjectMember[];
+};
