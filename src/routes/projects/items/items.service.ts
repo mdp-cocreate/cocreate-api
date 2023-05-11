@@ -1,20 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { handleError } from 'src/utils/handleError';
-import { ProjectItemEntity } from '../entities/project-item.entity';
 import { UpdateItemDto } from './dto/update-item-dto';
+import { ProjectItem } from '@prisma/client';
 
 @Injectable()
 export class ItemsService {
   constructor(private prisma: PrismaService) {}
 
-  async findOne(id: number): Promise<{ item: Partial<ProjectItemEntity> }> {
-    const itemFound = await this.prisma.projectItems.findUnique({
+  async findOne(id: number): Promise<{ item: Partial<ProjectItem> }> {
+    const itemFound = await this.prisma.projectItem.findUnique({
       where: { id },
       select: {
         id: true,
         name: true,
-        description: true,
+        shortDescription: true,
         link: true,
         associatedFile: true,
         author: {
@@ -38,13 +38,13 @@ export class ItemsService {
     id: number,
     updateItemDto: UpdateItemDto,
     authorEmail: string
-  ): Promise<{ item: ProjectItemEntity }> {
+  ): Promise<{ item: ProjectItem }> {
     try {
-      const itemUpdated = await this.prisma.projectItems.update({
+      const itemUpdated = await this.prisma.projectItem.update({
         where: { id },
         data: updateItemDto,
       });
-      await this.prisma.projects.update({
+      await this.prisma.project.update({
         where: { id: itemUpdated.projectId },
         data: {
           updatedAt: new Date(),
@@ -66,12 +66,12 @@ export class ItemsService {
   async remove(
     id: number,
     authorEmail: string
-  ): Promise<{ item: ProjectItemEntity }> {
+  ): Promise<{ item: ProjectItem }> {
     try {
-      const itemToDelete = await this.prisma.projectItems.delete({
+      const itemToDelete = await this.prisma.projectItem.delete({
         where: { id },
       });
-      await this.prisma.projects.update({
+      await this.prisma.project.update({
         where: { id: itemToDelete.projectId },
         data: {
           updatedAt: new Date(),

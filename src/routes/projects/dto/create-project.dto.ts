@@ -1,7 +1,6 @@
-import { Domain } from '@prisma/client';
+import { SkillName } from '@prisma/client';
 import {
   IsBoolean,
-  IsDateString,
   IsEnum,
   IsNotEmpty,
   IsOptional,
@@ -14,9 +13,14 @@ export class CreateProjectDto {
   name: string;
 
   @IsString()
+  @IsNotEmpty()
+  shortDescription: string;
+
+  @IsString()
   @IsOptional()
   description?: string;
 
+  // TODO check if is Buffer
   @IsOptional()
   coverImage?: Buffer;
 
@@ -24,10 +28,6 @@ export class CreateProjectDto {
   @IsOptional()
   public?: boolean;
 
-  @IsDateString()
-  @IsOptional()
-  updatedAt?: Date;
-
-  @IsEnum(Domain, { each: true })
-  domains: Domain[];
+  @IsEnum(SkillName, { each: true })
+  skills: SkillName[];
 }

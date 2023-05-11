@@ -32,7 +32,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<{ accessToken: string }> {
+  async login(@Body() loginDto: LoginDto): Promise<{ token: string }> {
     return await this.authService.login(loginDto);
   }
 
@@ -51,8 +51,8 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('verify-token')
-  async verifyToken() {
-    return { success: true };
+  @Get('is-authenticated')
+  async isAuthenticated(): Promise<boolean> {
+    return true;
   }
 }

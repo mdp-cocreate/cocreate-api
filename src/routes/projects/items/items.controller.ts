@@ -9,10 +9,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UpdateItemDto } from './dto/update-item-dto';
-import { ProjectItemEntity } from '../entities/project-item.entity';
 import { ItemsService } from './items.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UserEntityWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
+import { ProjectItem } from '@prisma/client';
 
 @Controller('projects/items')
 @UseGuards(AuthGuard('jwt'))
@@ -20,9 +20,7 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Get(':id')
-  findOne(
-    @Param('id') id: string
-  ): Promise<{ item: Partial<ProjectItemEntity> }> {
+  findOne(@Param('id') id: string): Promise<{ item: Partial<ProjectItem> }> {
     return this.itemsService.findOne(+id);
   }
 
@@ -31,7 +29,7 @@ export class ItemsController {
     @Param('id') id: string,
     @Body() updateItemDto: UpdateItemDto,
     @Req() { user }: { user: UserEntityWithoutSensitiveData }
-  ): Promise<{ item: ProjectItemEntity }> {
+  ): Promise<{ item: ProjectItem }> {
     return this.itemsService.update(+id, updateItemDto, user.email);
   }
 
@@ -39,7 +37,7 @@ export class ItemsController {
   remove(
     @Param('id') id: string,
     @Req() { user }: { user: UserEntityWithoutSensitiveData }
-  ): Promise<{ item: ProjectItemEntity }> {
+  ): Promise<{ item: ProjectItem }> {
     return this.itemsService.remove(+id, user.email);
   }
 }

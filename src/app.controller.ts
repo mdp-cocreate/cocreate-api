@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Domains } from '@prisma/client';
+import { Domain } from '@prisma/client';
 
 @Controller()
 export class AppController {
@@ -8,7 +8,7 @@ export class AppController {
 
   @Get('/domains')
   async getDomains(): Promise<{
-    domains: Domains[];
+    domains: Domain[];
   }> {
     return await this.appService.getDomains();
   }

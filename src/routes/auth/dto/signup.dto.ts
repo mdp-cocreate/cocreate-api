@@ -1,4 +1,4 @@
-import { Domain } from '@prisma/client';
+import { SkillName } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -29,16 +29,10 @@ export class SignupDto {
   @IsNotEmpty()
   lastName: string;
 
-  @IsString()
+  // TODO check if is Buffer
   @IsOptional()
-  country: string;
+  profilePicture?: Buffer;
 
-  @IsOptional()
-  profilePicture: Buffer;
-
-  @IsEnum(Domain, { each: true })
-  domains: Domain[];
-
-  @IsString({ each: true })
-  skills: string[];
+  @IsEnum(SkillName, { each: true })
+  skills: SkillName[];
 }

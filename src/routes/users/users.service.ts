@@ -18,7 +18,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(): Promise<{ users: UserEntityWithoutSensitiveData[] }> {
-    const usersFound = await this.prisma.users.findMany({
+    const usersFound = await this.prisma.user.findMany({
       where: {
         isEmailValidated: true,
       },
@@ -58,7 +58,7 @@ export class UsersService {
       return { user: formattedAuthor, isItTheUserHimself };
     }
 
-    const userFound = await this.prisma.users.findUnique({
+    const userFound = await this.prisma.user.findUnique({
       where: { id: userId },
     });
 
@@ -88,9 +88,9 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
     authorId: number
   ): Promise<{ user: UserEntityWithoutSensitiveData }> {
-    const { domains, ...data } = updateUserDto;
+    const { skills, ...data } = updateUserDto;
 
-    const userToUpdate = await this.prisma.users.findUnique({
+    const userToUpdate = await this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -104,18 +104,15 @@ export class UsersService {
     if (userToUpdate.id !== authorId) throw new ForbiddenException();
 
     try {
-      const userUpdated = await this.prisma.users.update({
+      const userUpdated = await this.prisma.user.update({
         where: { id },
         include: {
-          domains: true,
-          // projects: true,
-          // contributions: true,
-          // actions: true,
+          skills: true,
         },
         data: {
           ...data,
-          domains: domains && {
-            set: domains.map((domain) => ({ name: domain })),
+          skills: skills && {
+            set: skills.map((skill) => ({ name: skill })),
           },
         },
       });
@@ -135,7 +132,7 @@ export class UsersService {
   }
 
   async remove(id: number, authorId: number) {
-    const userToDelete = await this.prisma.users.findUnique({
+    const userToDelete = await this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -149,7 +146,7 @@ export class UsersService {
     if (userToDelete.id !== authorId) throw new ForbiddenException();
 
     try {
-      await this.prisma.users.delete({
+      await this.prisma.user.delete({
         where: { id },
       });
     } catch (e: unknown) {

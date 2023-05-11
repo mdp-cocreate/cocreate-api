@@ -1,16 +1,38 @@
-import { Projects, Role } from '@prisma/client';
-import { UserEntityWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
+import { Project, Role } from '@prisma/client';
 
-export type ProjectPreviewEntity = Omit<
-  Projects,
-  'coverImage' | 'public' | 'description' | 'updatedAt'
+export type RetrievedProjectPreview = Omit<
+  Project,
+  'public' | 'description' | 'updatedAt'
+> & {
+  members: RetrievedProjectPreviewMember[];
+};
+
+export type RetrievedProjectPreviewMember = {
+  role: Role;
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    profilePicture: Buffer | null;
+  };
+};
+
+export type FormattedRetrievedProjectPreviewMember = Omit<
+  RetrievedProjectPreviewMember,
+  'user'
+> & {
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    profilePicture: string | null;
+  };
+};
+
+export type FormattedRetrievedProjectPreview = Omit<
+  RetrievedProjectPreview,
+  'coverImage' | 'members'
 > & {
   coverImage: string | null;
-  members: {
-    role: Role;
-    user: Omit<
-      UserEntityWithoutSensitiveData,
-      'email' | 'country' | 'skills' | 'registeredAt' | 'profilePicture'
-    > & { profilePicture: string | null };
-  }[];
+  members: FormattedRetrievedProjectPreviewMember[];
 };

@@ -28,12 +28,13 @@ export class AuthService {
     const user = { ...signupDto, password: hash };
 
     try {
-      const { domains, skills, ...data } = user;
-      const newUser = await this.prisma.users.create({
+      const { skills, ...data } = user;
+      const newUser = await this.prisma.user.create({
         data: {
           ...data,
-          skills: JSON.stringify(skills),
-          domains: { connect: domains.map((domain) => ({ name: domain })) },
+          // TODO generate slug
+          slug: 'slug',
+          skills: { connect: skills.map((skill) => ({ name: skill })) },
         },
       });
 
@@ -44,7 +45,7 @@ export class AuthService {
   }
 
   async sendAccountValidationEmail({ email }: SendAccountValidationEmailDto) {
-    const user = await this.prisma.users.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         email,
       },
@@ -62,7 +63,7 @@ export class AuthService {
     const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT));
     const token = await bcrypt.hash(data, salt);
 
-    await this.prisma.users.update({
+    await this.prisma.user.update({
       where: {
         email,
       },
@@ -94,7 +95,7 @@ export class AuthService {
   }
 
   async validateEmail({ email, token }: ValidateEmailDto) {
-    const user = await this.prisma.users.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         email,
       },
@@ -112,7 +113,7 @@ export class AuthService {
     if (user.validateEmailToken !== decodeURIComponent(token))
       throw new UnauthorizedException();
 
-    await this.prisma.users.update({
+    await this.prisma.user.update({
       where: { email },
       data: {
         isEmailValidated: true,
@@ -121,10 +122,10 @@ export class AuthService {
     });
   }
 
-  async login({ email, password }: LoginDto): Promise<{ accessToken: string }> {
-    const user = await this.prisma.users.findUnique({
+  async login({ email, password }: LoginDto): Promise<{ token: string }> {
+    const user = await this.prisma.user.findUnique({
       where: { email },
-      select: { email: true, password: true, isEmailValidated: true },
+      select: { id: true, password: true, isEmailValidated: true },
     });
 
     if (!user || !(await bcrypt.compare(password, user.password)))
@@ -135,13 +136,13 @@ export class AuthService {
         'you must validate your email before login in'
       );
 
-    const payload: JwtPayload = { email: user.email };
-    const accessToken = this.jwtService.sign(payload);
-    return { accessToken };
+    const payload: JwtPayload = { id: user.id };
+    const token = this.jwtService.sign(payload);
+    return { token };
   }
 
   async sendResetPasswordEmail({ email }: SendResetPasswordEmailDto) {
-    const user = await this.prisma.users.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         email,
       },
@@ -158,7 +159,7 @@ export class AuthService {
     const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT));
     const token = await bcrypt.hash(data, salt);
 
-    await this.prisma.users.update({
+    await this.prisma.user.update({
       where: {
         email,
       },
@@ -190,7 +191,7 @@ export class AuthService {
   }
 
   async resetPassword({ email, newPassword, token }: ResetPasswordDto) {
-    const user = await this.prisma.users.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         email,
       },
@@ -209,7 +210,7 @@ export class AuthService {
     const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT));
     const hash = await bcrypt.hash(newPassword, salt);
 
-    await this.prisma.users.update({
+    await this.prisma.user.update({
       where: { email },
       data: {
         password: hash,
