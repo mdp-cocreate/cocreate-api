@@ -1,187 +1,258 @@
-import { Domain, PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, DomainName, SkillName, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { profilePicture } from './images/profilePicture';
+import { cover } from './images/cover';
+
+function base64ToBuffer(base64Image: string): Buffer {
+  const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+  const buffer = Buffer.from(base64Data, 'base64');
+  return buffer;
+}
 
 const prisma = new PrismaClient();
 
-const upsertDomains = async () => {
-  const uxuiDesign = await prisma.domains.upsert({
-    where: { name: 'UXUI_DESIGN' },
-    update: {},
-    create: {
-      name: 'UXUI_DESIGN',
-    },
-  });
-  const development = await prisma.domains.upsert({
-    where: { name: 'DEVELOPMENT' },
-    update: {},
-    create: {
-      name: 'DEVELOPMENT',
-    },
-  });
-  const graphicDesign = await prisma.domains.upsert({
-    where: { name: 'GRAPHIC_DESIGN' },
-    update: {},
-    create: {
-      name: 'GRAPHIC_DESIGN',
-    },
-  });
-  const webmarketing = await prisma.domains.upsert({
-    where: { name: 'WEBMARKETING' },
-    update: {},
-    create: {
-      name: 'WEBMARKETING',
-    },
-  });
-  const cybersecurity = await prisma.domains.upsert({
-    where: { name: 'CYBERSECURITY' },
-    update: {},
-    create: {
-      name: 'CYBERSECURITY',
-    },
-  });
-  const data = await prisma.domains.upsert({
-    where: { name: 'DATA' },
-    update: {},
-    create: {
-      name: 'DATA',
-    },
-  });
-  const audiovisual = await prisma.domains.upsert({
-    where: { name: 'AUDIOVISUAL' },
-    update: {},
-    create: {
-      name: 'AUDIOVISUAL',
-    },
-  });
+async function seed() {
+  try {
+    // Domains
+    await prisma.domain.createMany({
+      data: [
+        { name: DomainName.UXUI_DESIGN },
+        { name: DomainName.DEVELOPMENT },
+        { name: DomainName.GRAPHIC_DESIGN },
+        { name: DomainName.WEBMARKETING },
+        { name: DomainName.CYBERSECURITY },
+        { name: DomainName.DATA },
+        { name: DomainName.AUDIOVISUAL },
+      ],
+    });
 
-  // eslint-disable-next-line no-console
-  console.log('\ndomains:', [
-    uxuiDesign,
-    development,
-    graphicDesign,
-    webmarketing,
-    cybersecurity,
-    data,
-    audiovisual,
-  ]);
-};
+    // Skills
+    await prisma.skill.createMany({
+      data: [
+        // UXUI_DESIGN
+        { name: SkillName.USER_RESEARCH, domainId: 1 },
+        { name: SkillName.WIREFRAMING, domainId: 1 },
+        { name: SkillName.INTERACTIVE_PROTOTYPING, domainId: 1 },
+        { name: SkillName.USER_CENTERED_DESIGN, domainId: 1 },
+        { name: SkillName.INTERACTION_DESIGN, domainId: 1 },
 
-const upsertUsers = async () => {
-  const salt = await bcrypt.genSalt(Number(process.env.HASH_SALT) || 10);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || '123', salt);
-  const admin = await prisma.users.upsert({
-    where: { email: 'edgarcresson@hotmail.com' },
-    update: {},
-    create: {
-      email: 'edgarcresson@hotmail.com',
-      password: hash,
-      firstName: 'Edgar',
-      lastName: 'Cresson',
-      country: 'France',
-      domains: {
-        connect: [{ name: Domain.DEVELOPMENT }, { name: Domain.UXUI_DESIGN }],
+        // DEVELOPMENT
+        { name: SkillName.WEB_DEVELOPMENT, domainId: 2 },
+        { name: SkillName.MOBILE_DEVELOPMENT, domainId: 2 },
+        { name: SkillName.FRONTEND_DEVELOPMENT, domainId: 2 },
+        { name: SkillName.BACKEND_DEVELOPMENT, domainId: 2 },
+        { name: SkillName.DATABASE_MANAGEMENT, domainId: 2 },
+
+        // GRAPHIC_DESIGN
+        { name: SkillName.TYPOGRAPHY, domainId: 3 },
+        { name: SkillName.BRAND_IDENTITY_DESIGN, domainId: 3 },
+        { name: SkillName.ILLUSTRATION, domainId: 3 },
+        { name: SkillName.LAYOUT_DESIGN, domainId: 3 },
+        { name: SkillName.COLOR_THEORY, domainId: 3 },
+
+        // WEBMARKETING
+        { name: SkillName.DIGITAL_STRATEGY, domainId: 4 },
+        { name: SkillName.SEO_OPTIMIZATION, domainId: 4 },
+        { name: SkillName.SOCIAL_MEDIA_MARKETING, domainId: 4 },
+        { name: SkillName.CONTENT_MARKETING, domainId: 4 },
+        { name: SkillName.ANALYTICS_TRACKING, domainId: 4 },
+
+        // CYBERSECURITY
+        { name: SkillName.NETWORK_SECURITY, domainId: 5 },
+        { name: SkillName.THREAT_ANALYSIS, domainId: 5 },
+        { name: SkillName.INCIDENT_RESPONSE, domainId: 5 },
+        { name: SkillName.VULNERABILITY_ASSESSMENT, domainId: 5 },
+        { name: SkillName.CRYPTOGRAPHY, domainId: 5 },
+
+        // DATA
+        { name: SkillName.DATA_ANALYSIS, domainId: 6 },
+        { name: SkillName.DATA_VISUALIZATION, domainId: 6 },
+        { name: SkillName.MACHINE_LEARNING, domainId: 6 },
+        { name: SkillName.DATA_ENGINEERING, domainId: 6 },
+        { name: SkillName.STATISTICAL_MODELING, domainId: 6 },
+
+        // AUDIOVISUAL
+        { name: SkillName.VIDEO_EDITING, domainId: 7 },
+        { name: SkillName.MOTION_GRAPHICS, domainId: 7 },
+        { name: SkillName.SOUND_DESIGN, domainId: 7 },
+        { name: SkillName.STORYBOARDING, domainId: 7 },
+        { name: SkillName.CINEMATOGRAPHY, domainId: 7 },
+      ],
+    });
+
+    // Users
+    const admin = await prisma.user.create({
+      data: {
+        slug: 'edgar-cresson',
+        email: 'edgarcresson@hotmail.com',
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        password: await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10),
+        firstName: 'Edgar',
+        lastName: 'Cresson',
+        profilePicture: base64ToBuffer(profilePicture),
+        skills: {
+          connect: [
+            { name: SkillName.FRONTEND_DEVELOPMENT },
+            { name: SkillName.BACKEND_DEVELOPMENT },
+            { name: SkillName.DATA_ENGINEERING },
+          ],
+        },
       },
-      skills: JSON.stringify(['Typescript', 'Next.js', 'Nest.js']),
-      isEmailValidated: true,
-    },
-  });
-
-  // eslint-disable-next-line no-console
-  console.log('\nusers:', [admin]);
-};
-
-const upsertProjects = async () => {
-  const project = await prisma.projects.upsert({
-    where: { name: 'Projet "Cocreate"' },
-    update: {},
-    create: {
-      name: 'Projet "Cocreate"',
-      description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      domains: {
-        connect: [
-          { name: Domain.DEVELOPMENT },
-          { name: Domain.UXUI_DESIGN },
-          { name: Domain.WEBMARKETING },
-        ],
+    });
+    const designer = await prisma.user.create({
+      data: {
+        slug: 'theo-lefevre',
+        email: 'theolefevre@gmail.com',
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        password: await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10),
+        firstName: 'Théo',
+        lastName: 'Lefèvre',
+        profilePicture: base64ToBuffer(profilePicture),
+        skills: {
+          connect: [
+            { name: SkillName.WIREFRAMING },
+            { name: SkillName.INTERACTION_DESIGN },
+            { name: SkillName.COLOR_THEORY },
+          ],
+        },
       },
-      members: {
-        create: [
-          {
-            role: Role.OWNER,
-            user: {
-              connect: {
-                email: 'edgarcresson@hotmail.com',
-              },
+    });
+    const user3 = await prisma.user.create({
+      data: {
+        slug: 'john-doe',
+        email: 'john@doe.com',
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        password: await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10),
+        firstName: 'John',
+        lastName: 'Doe',
+        profilePicture: base64ToBuffer(profilePicture),
+        skills: {
+          connect: [
+            { name: SkillName.DIGITAL_STRATEGY },
+            { name: SkillName.SEO_OPTIMIZATION },
+            { name: SkillName.VULNERABILITY_ASSESSMENT },
+            { name: SkillName.DATA_ANALYSIS },
+            { name: SkillName.MOTION_GRAPHICS },
+          ],
+        },
+      },
+    });
+
+    // Projects
+    await prisma.project.create({
+      data: {
+        name: 'Cocreate',
+        slug: 'cocreate',
+        shortDescription: 'Description courte du projet 1',
+        description: 'Description détaillée du projet 1',
+        coverImage: base64ToBuffer(cover),
+        skills: {
+          connect: [
+            { name: SkillName.FRONTEND_DEVELOPMENT },
+            { name: SkillName.BACKEND_DEVELOPMENT },
+            { name: SkillName.DATABASE_MANAGEMENT },
+            { name: SkillName.USER_RESEARCH },
+            { name: SkillName.WIREFRAMING },
+            { name: SkillName.USER_CENTERED_DESIGN },
+          ],
+        },
+        members: {
+          create: [
+            {
+              user: { connect: { id: admin.id } },
+              role: Role.OWNER,
             },
-          },
-        ],
-      },
-    },
-  });
-
-  // eslint-disable-next-line no-console
-  console.log('\nprojects:', [project]);
-};
-
-const upsertProjectsItems = async () => {
-  const projectItem = await prisma.projectItems.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      name: "Développement de l'app",
-      link: 'https://github.com/mdp-cocreate',
-      author: {
-        connect: { email: 'edgarcresson@hotmail.com' },
-      },
-      project: {
-        connect: { name: 'Projet "Cocreate"' },
-      },
-    },
-  });
-
-  // eslint-disable-next-line no-console
-  console.log('\nprojectItems:', [projectItem]);
-};
-
-const upsertActions = async () => {
-  const action = await prisma.actions.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      name: 'a créé le projet',
-      project: {
-        connect: {
-          id: 1,
+            {
+              user: { connect: { id: designer.id } },
+              role: Role.EDITOR,
+            },
+          ],
+        },
+        actions: {
+          create: [
+            {
+              author: { connect: { id: admin.id } },
+              name: 'a créé le projet',
+            },
+          ],
         },
       },
-      author: {
-        connect: {
-          email: 'edgarcresson@hotmail.com',
+    });
+    await prisma.project.create({
+      data: {
+        name: 'Projet 2',
+        slug: 'projet-2',
+        shortDescription: 'Description courte du projet 2',
+        description: 'Description détaillée du projet 2',
+        coverImage: base64ToBuffer(cover),
+        skills: {
+          connect: [
+            { name: SkillName.MOTION_GRAPHICS },
+            { name: SkillName.TYPOGRAPHY },
+          ],
+        },
+        members: {
+          create: [
+            {
+              user: { connect: { id: user3.id } },
+              role: Role.OWNER,
+            },
+          ],
+        },
+        actions: {
+          create: [
+            {
+              author: { connect: { id: user3.id } },
+              name: 'a créé le projet',
+            },
+          ],
         },
       },
-    },
-  });
+    });
+    await prisma.project.create({
+      data: {
+        name: 'Projet 3',
+        slug: 'projet-3',
+        shortDescription: 'Description courte du projet 3',
+        description: 'Description détaillée du projet 3',
+        coverImage: base64ToBuffer(cover),
+        skills: {
+          connect: [
+            { name: SkillName.USER_RESEARCH },
+            { name: SkillName.DIGITAL_STRATEGY },
+          ],
+        },
+        members: {
+          create: [
+            {
+              user: { connect: { id: user3.id } },
+              role: Role.OWNER,
+            },
+          ],
+        },
+        actions: {
+          create: [
+            {
+              author: { connect: { id: user3.id } },
+              name: 'a créé le projet',
+            },
+          ],
+        },
+      },
+    });
 
-  // eslint-disable-next-line no-console
-  console.log('\nactions:', [action]);
-};
+    // TODO ProjectItems
 
-const main = async () => {
-  await upsertDomains();
-  await upsertUsers();
-  await upsertProjects();
-  await upsertProjectsItems();
-  await upsertActions();
-};
+    // TODO JoinRequests
 
-main()
-  .catch((e) => {
     // eslint-disable-next-line no-console
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
+    console.log('Data initialized successfully');
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('An error has occurred during data initialization:', error);
+  } finally {
     await prisma.$disconnect();
-  });
+  }
+}
+
+seed();

@@ -4,7 +4,7 @@ import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { SendResetPasswordEmailDto } from './dto/send-reset-password-email.dto';
 import { SendAccountValidationEmailDto } from './dto/send-account-validation-email.dto';
-import { SignupDto } from './dto/signup.dto';
+import { RegisterDto } from './dto/register.dto';
 import { ValidateEmailDto } from './dto/validate-email.dto';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -12,9 +12,9 @@ import { AuthGuard } from '@nestjs/passport';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('signup')
-  async signup(@Body() signupDto: SignupDto) {
-    return await this.authService.signup(signupDto);
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    return await this.authService.register(registerDto);
   }
 
   @Post('send-account-validation-email')
@@ -32,7 +32,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<{ accessToken: string }> {
+  async login(@Body() loginDto: LoginDto): Promise<{ token: string }> {
     return await this.authService.login(loginDto);
   }
 
@@ -51,8 +51,8 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('verify-token')
-  async verifyToken() {
-    return { success: true };
+  @Get('is-authenticated')
+  isAuthenticated(): void {
+    return;
   }
 }

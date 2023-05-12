@@ -1,11 +1,36 @@
-import { Projects } from '@prisma/client';
+import { Project, Role, Skill } from '@prisma/client';
 
-export class ProjectEntity implements Projects {
-  id: number;
-  name: string;
-  description: string | null;
-  coverImage: Buffer | null;
-  public: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type RetrievedProject = Project & {
+  skills: Skill[];
+  members: RetrievedProjectMember[];
+};
+
+export type RetrievedProjectMember = {
+  role: Role;
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    profilePicture: Buffer | null;
+  };
+};
+
+export type FormattedRetrievedProjectMember = Omit<
+  RetrievedProjectMember,
+  'user'
+> & {
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    profilePicture: string | null;
+  };
+};
+
+export type FormattedRetrievedProject = Omit<
+  RetrievedProject,
+  'coverImage' | 'members'
+> & {
+  coverImage: string | null;
+  members: FormattedRetrievedProjectMember[];
+};

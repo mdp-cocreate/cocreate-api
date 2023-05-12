@@ -12,7 +12,7 @@ import { AppService } from './app.service';
   providers: [AppService],
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.development', '.env'],
+      envFilePath: ['.env'],
       isGlobal: true,
     }),
     PrismaModule,

@@ -6,13 +6,13 @@ export class CreateItemDto {
   name: string;
 
   @IsString()
-  @IsOptional()
-  description?: string;
+  shortDescription: string;
 
   @IsString()
   @IsOptional()
   link?: string;
 
+  // TODO Check if is Buffer
   @IsOptional()
   associatedFile?: Buffer;
 }

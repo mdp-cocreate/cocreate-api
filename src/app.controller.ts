@@ -1,15 +1,23 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Domains } from '@prisma/client';
+import { Domain, DomainName, Skill } from '@prisma/client';
 
 @Controller()
 export class AppController {
   constructor(private appService: AppService) {}
 
-  @Get('/domains')
+  @Get('domains')
   async getDomains(): Promise<{
-    domains: Domains[];
+    domains: Domain[];
   }> {
     return await this.appService.getDomains();
+  }
+
+  @Get('skills')
+  async getSkillsByDomains(
+    @Query('domains') domains: string
+  ): Promise<{ skills: Skill[] }> {
+    const domainList = domains.split(',');
+    return await this.appService.getSkillsByDomains(domainList as DomainName[]);
   }
 }
