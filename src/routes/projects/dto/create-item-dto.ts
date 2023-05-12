@@ -12,7 +12,6 @@ export class CreateItemDto {
   @IsOptional()
   link?: string;
 
-  // TODO Check if is Buffer
   @IsOptional()
   associatedFile?: Buffer;
 }

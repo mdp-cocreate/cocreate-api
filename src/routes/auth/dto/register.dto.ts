@@ -29,7 +29,6 @@ export class RegisterDto {
   @IsNotEmpty()
   lastName: string;
 
-  // TODO check if is Buffer
   @IsOptional()
   profilePicture?: Buffer;
 

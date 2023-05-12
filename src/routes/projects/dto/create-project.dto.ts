@@ -20,7 +20,6 @@ export class CreateProjectDto {
   @IsOptional()
   description?: string;
 
-  // TODO check if is Buffer
   @IsOptional()
   coverImage?: Buffer;
 
