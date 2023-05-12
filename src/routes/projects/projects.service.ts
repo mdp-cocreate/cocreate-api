@@ -196,6 +196,7 @@ export class ProjectsService {
               user: {
                 select: {
                   id: true,
+                  slug: true,
                   profilePicture: true,
                   firstName: true,
                   lastName: true,
@@ -258,6 +259,7 @@ export class ProjectsService {
                   user: {
                     select: {
                       id: true,
+                      slug: true,
                       profilePicture: true,
                       firstName: true,
                       lastName: true,
@@ -324,6 +326,7 @@ export class ProjectsService {
                   user: {
                     select: {
                       id: true,
+                      slug: true,
                       profilePicture: true,
                       firstName: true,
                       lastName: true,

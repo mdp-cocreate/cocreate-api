@@ -11,6 +11,7 @@ export type RetrievedProjectPreviewMember = {
   role: Role;
   user: {
     id: number;
+    slug: string;
     firstName: string;
     lastName: string;
     profilePicture: Buffer | null;

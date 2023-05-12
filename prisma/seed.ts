@@ -97,6 +97,7 @@ async function seed() {
             { name: SkillName.DATA_ENGINEERING },
           ],
         },
+        isEmailValidated: true,
       },
     });
     const designer = await prisma.user.create({
@@ -221,6 +222,62 @@ async function seed() {
             { name: SkillName.USER_RESEARCH },
             { name: SkillName.DIGITAL_STRATEGY },
           ],
+        },
+        members: {
+          create: [
+            {
+              user: { connect: { id: user3.id } },
+              role: Role.OWNER,
+            },
+          ],
+        },
+        actions: {
+          create: [
+            {
+              author: { connect: { id: user3.id } },
+              name: 'a créé le projet',
+            },
+          ],
+        },
+      },
+    });
+    await prisma.project.create({
+      data: {
+        name: 'Projet 4',
+        slug: 'projet-4',
+        shortDescription: 'Description courte du projet 4',
+        description: 'Description détaillée du projet 4',
+        coverImage: base64ToBuffer(cover),
+        skills: {
+          connect: [{ name: SkillName.DATA_ENGINEERING }],
+        },
+        members: {
+          create: [
+            {
+              user: { connect: { id: user3.id } },
+              role: Role.OWNER,
+            },
+          ],
+        },
+        actions: {
+          create: [
+            {
+              author: { connect: { id: user3.id } },
+              name: 'a créé le projet',
+            },
+          ],
+        },
+      },
+    });
+    await prisma.project.create({
+      data: {
+        name: 'Projet 5',
+        slug: 'projet-5',
+        shortDescription: 'Description courte du projet 5',
+        description: 'Description détaillée du projet 5',
+        coverImage: base64ToBuffer(cover),
+        skills: {
+          connect: [{ name: SkillName.WEB_DEVELOPMENT }],
         },
         members: {
           create: [
