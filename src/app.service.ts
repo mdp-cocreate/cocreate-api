@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 import { handleError } from './utils/handleError';
-import { Domain } from '@prisma/client';
+import { Domain, DomainName } from '@prisma/client';
 
 @Injectable()
 export class AppService {
@@ -16,5 +16,19 @@ export class AppService {
     } catch (e) {
       throw handleError(e);
     }
+  }
+
+  async getSkillsByDomains(domains: DomainName[]) {
+    const skills = await this.prisma.skill.findMany({
+      where: {
+        domain: {
+          name: {
+            in: domains,
+          },
+        },
+      },
+    });
+
+    return { skills };
   }
 }

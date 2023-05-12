@@ -16,12 +16,13 @@ import {
 import { CreateItemDto } from './dto/create-item-dto';
 import { handleError } from 'src/utils/handleError';
 import { AddUserDto } from './dto/add-user-dto';
-import { UserEntityWithoutSensitiveData } from '../users/entities/user.entity';
+import { UserWithoutSensitiveData } from '../users/entities/user.entity';
 import { bufferToImgSrc } from 'src/utils/bufferToImgSrc';
 import {
   FormattedRetrievedProjectPreview,
   RetrievedProjectPreview,
 } from './entities/project-preview.entity';
+import slugify from 'slugify';
 
 @Injectable()
 export class ProjectsService {
@@ -34,11 +35,21 @@ export class ProjectsService {
     try {
       const { skills, ...data } = createProjectDto;
 
+      const baseSlug = slugify(createProjectDto.name, {
+        lower: true,
+      });
+      let slug = baseSlug;
+      let sequence = 0;
+
+      while (await this.prisma.project.findUnique({ where: { slug } })) {
+        slug = `${baseSlug}${sequence ? `-${sequence}` : ''}`;
+        sequence++;
+      }
+
       const newProject = await this.prisma.project.create({
         data: {
           ...data,
-          // TODO generate unique slug
-          slug: 'slug',
+          slug,
           skills: {
             connect: skills.map((skill) => ({ name: skill })),
           },
@@ -126,7 +137,7 @@ export class ProjectsService {
   async findProjectPreviewsThatMatchTheUsersDomains(
     skip: number,
     take: number,
-    user: UserEntityWithoutSensitiveData
+    user: UserWithoutSensitiveData
   ): Promise<{ previews: FormattedRetrievedProjectPreview[] }> {
     const userSkillsWithDomains = await this.prisma.user.findUnique({
       where: { id: user.id },
@@ -350,8 +361,8 @@ export class ProjectsService {
     return { previews: formattedPreviews };
   }
 
-  async findOne(
-    id: number,
+  async findProjectBySlug(
+    slug: string,
     userId: number
   ): Promise<{
     project: FormattedRetrievedProject;
@@ -359,7 +370,7 @@ export class ProjectsService {
   }> {
     const projectFound: RetrievedProject | null =
       await this.prisma.project.findUnique({
-        where: { id },
+        where: { slug },
         include: {
           skills: true,
           members: {
@@ -379,7 +390,7 @@ export class ProjectsService {
       });
 
     if (!projectFound)
-      throw new NotFoundException(`project with id "${id}" does not exist`);
+      throw new NotFoundException(`project with slug "${slug}" does not exist`);
 
     if (
       !projectFound.public &&
@@ -414,13 +425,13 @@ export class ProjectsService {
     return { project: formattedProjectFound, currentUserRole };
   }
 
-  async update(
-    id: number,
+  async updateMyProject(
+    slug: string,
     updateProjectDto: UpdateProjectDto,
     authorId: number
   ): Promise<{ project: Project }> {
     const projectToUpdate = await this.prisma.project.findUnique({
-      where: { id },
+      where: { slug },
       include: {
         members: {
           select: {
@@ -459,7 +470,7 @@ export class ProjectsService {
       const { skills, ...data } = updateProjectDto;
 
       const projectUpdated = await this.prisma.project.update({
-        where: { id },
+        where: { slug },
         data: {
           ...data,
           skills: skills && {
@@ -480,9 +491,12 @@ export class ProjectsService {
     }
   }
 
-  async remove(id: number, authorId: number): Promise<{ project: Project }> {
+  async removeMyProject(
+    slug: string,
+    authorId: number
+  ): Promise<{ project: Project }> {
     const projectToDelete = await this.prisma.project.findUnique({
-      where: { id },
+      where: { slug },
       select: {
         members: {
           where: {
@@ -503,16 +517,14 @@ export class ProjectsService {
     const ownerOfThisProject = projectToDelete?.members.find(
       (member) => member.role === Role.OWNER
     );
-    if (!ownerOfThisProject) {
+
+    if (!ownerOfThisProject)
       throw new InternalServerErrorException('this project has no owner');
-    }
-    if (authorId !== ownerOfThisProject.user.id) {
-      throw new ForbiddenException();
-    }
+    if (authorId !== ownerOfThisProject.user.id) throw new ForbiddenException();
 
     try {
       const projectDeleted = await this.prisma.project.delete({
-        where: { id },
+        where: { slug },
       });
 
       return { project: projectDeleted };
@@ -521,9 +533,9 @@ export class ProjectsService {
     }
   }
 
-  async addUser(id: number, addUserDto: AddUserDto, authorId: number) {
+  async addUser(slug: string, addUserDto: AddUserDto, authorId: number) {
     const projectInWhichToAddTheUser = await this.prisma.project.findUnique({
-      where: { id },
+      where: { slug },
       select: {
         members: {
           where: {
@@ -541,20 +553,20 @@ export class ProjectsService {
       },
     });
 
-    const ownerOfThisProject = projectInWhichToAddTheUser?.members.find(
+    if (!projectInWhichToAddTheUser) throw new NotFoundException();
+
+    const ownerOfThisProject = projectInWhichToAddTheUser.members.find(
       (member) => member.role === Role.OWNER
     );
-    if (!ownerOfThisProject) {
+    if (!ownerOfThisProject)
       throw new InternalServerErrorException('this project has no owner');
-    }
-    if (authorId !== ownerOfThisProject.user.id) {
-      throw new ForbiddenException();
-    }
+
+    if (authorId !== ownerOfThisProject.user.id) throw new ForbiddenException();
 
     try {
       const newRelation = await this.prisma.projectToMember.create({
         data: {
-          project: { connect: { id } },
+          project: { connect: { slug } },
           user: { connect: { id: addUserDto.id } },
           role: addUserDto.role,
         },
@@ -569,7 +581,7 @@ export class ProjectsService {
       });
 
       await this.prisma.project.update({
-        where: { id },
+        where: { slug },
         data: {
           updatedAt: new Date(),
           actions: {
@@ -586,12 +598,12 @@ export class ProjectsService {
   }
 
   async createItem(
-    id: number,
+    slug: string,
     createItemDto: CreateItemDto,
     authorId: number
   ): Promise<{ item: ProjectItem }> {
     const projectInWhichToAddAnItem = await this.prisma.project.findUnique({
-      where: { id },
+      where: { slug },
       select: {
         public: true,
       },
@@ -605,11 +617,11 @@ export class ProjectsService {
         data: {
           ...createItemDto,
           author: { connect: { id: authorId } },
-          project: { connect: { id } },
+          project: { connect: { slug } },
         },
       });
       await this.prisma.project.update({
-        where: { id },
+        where: { slug },
         data: {
           updatedAt: new Date(),
           actions: {

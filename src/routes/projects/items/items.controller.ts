@@ -11,7 +11,7 @@ import {
 import { UpdateItemDto } from './dto/update-item-dto';
 import { ItemsService } from './items.service';
 import { AuthGuard } from '@nestjs/passport';
-import { UserEntityWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
+import { UserWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
 import { ProjectItem } from '@prisma/client';
 
 @Controller('projects/items')
@@ -28,7 +28,7 @@ export class ItemsController {
   update(
     @Param('id') id: string,
     @Body() updateItemDto: UpdateItemDto,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ item: ProjectItem }> {
     return this.itemsService.update(+id, updateItemDto, user.email);
   }
@@ -36,7 +36,7 @@ export class ItemsController {
   @Delete(':id')
   remove(
     @Param('id') id: string,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ item: ProjectItem }> {
     return this.itemsService.remove(+id, user.email);
   }

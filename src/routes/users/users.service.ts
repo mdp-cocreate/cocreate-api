@@ -7,8 +7,8 @@ import {
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
-  FormattedUserEntityWithoutSensitiveData,
-  UserEntityWithoutSensitiveData,
+  FormattedUserWithoutSensitiveData,
+  UserWithoutSensitiveData,
 } from './entities/user.entity';
 import { handleError } from 'src/utils/handleError';
 import { bufferToImgSrc } from 'src/utils/bufferToImgSrc';
@@ -17,7 +17,7 @@ import { bufferToImgSrc } from 'src/utils/bufferToImgSrc';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<{ users: UserEntityWithoutSensitiveData[] }> {
+  async findAll(): Promise<{ users: FormattedUserWithoutSensitiveData[] }> {
     const usersFound = await this.prisma.user.findMany({
       where: {
         isEmailValidated: true,
@@ -32,24 +32,30 @@ export class UsersService {
           resetPasswordToken,
           validateEmailToken,
           isEmailValidated,
-          ...formattedUser
+          ...userWithoutSensitiveData
         } = user;
-        return formattedUser;
+
+        return {
+          ...userWithoutSensitiveData,
+          profilePicture: userWithoutSensitiveData.profilePicture
+            ? bufferToImgSrc(userWithoutSensitiveData.profilePicture)
+            : null,
+        };
       });
 
     return { users };
   }
 
-  async retrieveUserProfileById(
-    userId: number,
-    author: UserEntityWithoutSensitiveData
+  async findUserProfileBySlug(
+    slug: string,
+    author: UserWithoutSensitiveData
   ): Promise<{
-    user: FormattedUserEntityWithoutSensitiveData;
+    user: FormattedUserWithoutSensitiveData;
     isItTheUserHimself: boolean;
   }> {
-    const isItTheUserHimself = userId === author.id;
+    const isItTheUserHimself = slug === author.slug;
     if (isItTheUserHimself) {
-      const formattedAuthor: FormattedUserEntityWithoutSensitiveData = {
+      const formattedAuthor: FormattedUserWithoutSensitiveData = {
         ...author,
         profilePicture: author.profilePicture
           ? bufferToImgSrc(author.profilePicture)
@@ -59,11 +65,11 @@ export class UsersService {
     }
 
     const userFound = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: { slug },
     });
 
     if (!userFound || !userFound?.isEmailValidated)
-      throw new NotFoundException(`user with id "${userId}" does not exist`);
+      throw new NotFoundException(`user with slug "${slug}" does not exist`);
 
     const {
       password,
@@ -73,7 +79,7 @@ export class UsersService {
       ...formattedUserFound
     } = userFound;
 
-    const formattedUser: FormattedUserEntityWithoutSensitiveData = {
+    const formattedUser: FormattedUserWithoutSensitiveData = {
       ...formattedUserFound,
       profilePicture: formattedUserFound.profilePicture
         ? bufferToImgSrc(formattedUserFound.profilePicture)
@@ -83,17 +89,18 @@ export class UsersService {
     return { user: formattedUser, isItTheUserHimself };
   }
 
-  async update(
-    id: number,
+  async updateMyAccount(
+    slug: string,
     updateUserDto: UpdateUserDto,
-    authorId: number
-  ): Promise<{ user: UserEntityWithoutSensitiveData }> {
+    authorSlug: string
+  ): Promise<{ user: FormattedUserWithoutSensitiveData }> {
+    if (slug !== authorSlug) throw new ForbiddenException();
+
     const { skills, ...data } = updateUserDto;
 
     const userToUpdate = await this.prisma.user.findUnique({
-      where: { id },
+      where: { slug },
       select: {
-        id: true,
         isEmailValidated: true,
       },
     });
@@ -101,11 +108,9 @@ export class UsersService {
     if (!userToUpdate || !userToUpdate.isEmailValidated)
       throw new NotFoundException();
 
-    if (userToUpdate.id !== authorId) throw new ForbiddenException();
-
     try {
       const userUpdated = await this.prisma.user.update({
-        where: { id },
+        where: { slug },
         include: {
           skills: true,
         },
@@ -122,8 +127,15 @@ export class UsersService {
         resetPasswordToken,
         validateEmailToken,
         isEmailValidated,
-        ...formattedUser
+        ...userWithoutSensitiveData
       } = userUpdated;
+
+      const formattedUser: FormattedUserWithoutSensitiveData = {
+        ...userWithoutSensitiveData,
+        profilePicture: userWithoutSensitiveData.profilePicture
+          ? bufferToImgSrc(userWithoutSensitiveData.profilePicture)
+          : null,
+      };
 
       return { user: formattedUser };
     } catch (e: unknown) {
@@ -131,11 +143,12 @@ export class UsersService {
     }
   }
 
-  async remove(id: number, authorId: number) {
+  async deleteMyAccount(slug: string, authorSlug: string) {
+    if (slug !== authorSlug) throw new ForbiddenException();
+
     const userToDelete = await this.prisma.user.findUnique({
-      where: { id },
+      where: { slug },
       select: {
-        id: true,
         isEmailValidated: true,
       },
     });
@@ -143,11 +156,9 @@ export class UsersService {
     if (!userToDelete || !userToDelete.isEmailValidated)
       throw new NotFoundException();
 
-    if (userToDelete.id !== authorId) throw new ForbiddenException();
-
     try {
       await this.prisma.user.delete({
-        where: { id },
+        where: { slug },
       });
     } catch (e: unknown) {
       throw handleError(e);

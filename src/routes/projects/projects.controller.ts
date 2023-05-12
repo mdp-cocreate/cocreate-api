@@ -16,7 +16,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { FormattedRetrievedProject } from './entities/project.entity';
 import { CreateItemDto } from './dto/create-item-dto';
-import { UserEntityWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
+import { UserWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
 import { AddUserDto } from './dto/add-user-dto';
 import { Project, ProjectItem, Role } from '@prisma/client';
 import { FormattedRetrievedProjectPreview } from './entities/project-preview.entity';
@@ -29,7 +29,7 @@ export class ProjectsController {
   @Post()
   create(
     @Body() createProjectDto: CreateProjectDto,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ project: Project }> {
     return this.projectsService.create(createProjectDto, user.id);
   }
@@ -39,22 +39,11 @@ export class ProjectsController {
     return this.projectsService.findAll();
   }
 
-  @Get(':id')
-  findOne(
-    @Param('id') id: string,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
-  ): Promise<{
-    project: FormattedRetrievedProject;
-    currentUserRole: Role | null;
-  }> {
-    return this.projectsService.findOne(+id, user.id);
-  }
-
   @Get('similar-domains')
   findProjectPreviewsThatMatchTheUsersDomains(
     @Query('skip') skip = 0,
     @Query('take') take = 5,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ previews: FormattedRetrievedProjectPreview[] }> {
     return this.projectsService.findProjectPreviewsThatMatchTheUsersDomains(
       +skip,
@@ -68,7 +57,7 @@ export class ProjectsController {
     @Query('userId') userId: string | undefined = undefined,
     @Query('skip') skip = 0,
     @Query('take') take = 5,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ previews: FormattedRetrievedProjectPreview[] }> {
     return this.projectsService.findProjectPreviewsThatTheUserOwns(
       userId ? +userId : undefined,
@@ -83,7 +72,7 @@ export class ProjectsController {
     @Query('userId') userId: string | undefined = undefined,
     @Query('skip') skip = 0,
     @Query('take') take = 5,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ previews: FormattedRetrievedProjectPreview[] }> {
     return this.projectsService.findProjectPreviewsOfWhichTheUserIsAMember(
       userId ? +userId : undefined,
@@ -93,38 +82,53 @@ export class ProjectsController {
     );
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
+  @Get(':slug')
+  findProjectBySlug(
+    @Param('slug') slug: string,
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ): Promise<{
+    project: FormattedRetrievedProject;
+    currentUserRole: Role | null;
+  }> {
+    return this.projectsService.findProjectBySlug(slug, user.id);
+  }
+
+  @Patch(':slug')
+  updateMyProject(
+    @Param('slug') slug: string,
     @Body() updateProjectDto: UpdateProjectDto,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ project: Project }> {
-    return this.projectsService.update(+id, updateProjectDto, user.id);
+    return this.projectsService.updateMyProject(
+      slug,
+      updateProjectDto,
+      user.id
+    );
   }
 
-  @Delete(':id')
-  remove(
-    @Param('id') id: string,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+  @Delete(':slug')
+  deleteMyProject(
+    @Param('slug') slug: string,
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ project: Project }> {
-    return this.projectsService.remove(+id, user.id);
+    return this.projectsService.removeMyProject(slug, user.id);
   }
 
-  @Post(':id/add-user')
+  @Post(':slug/add-user')
   addUser(
-    @Param('id') id: string,
+    @Param('slug') slug: string,
     @Body() addUserDto: AddUserDto,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ) {
-    return this.projectsService.addUser(+id, addUserDto, user.id);
+    return this.projectsService.addUser(slug, addUserDto, user.id);
   }
 
-  @Post(':id/items')
+  @Post(':slug/items')
   createItem(
-    @Param('id') id: string,
+    @Param('slug') slug: string,
     @Body() createItemDto: CreateItemDto,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ item: ProjectItem }> {
-    return this.projectsService.createItem(+id, createItemDto, user.id);
+    return this.projectsService.createItem(slug, createItemDto, user.id);
   }
 }

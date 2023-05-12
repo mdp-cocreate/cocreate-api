@@ -11,8 +11,8 @@ import {
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
-  FormattedUserEntityWithoutSensitiveData,
-  UserEntityWithoutSensitiveData,
+  FormattedUserWithoutSensitiveData,
+  UserWithoutSensitiveData,
 } from './entities/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -22,35 +22,39 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  async findAll(): Promise<{ users: UserEntityWithoutSensitiveData[] }> {
+  async findAll(): Promise<{ users: FormattedUserWithoutSensitiveData[] }> {
     return await this.usersService.findAll();
   }
 
-  @Get(':id')
-  async retrieveUserProfileById(
-    @Param('id') id: string,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+  @Get(':slug')
+  async findUserProfileBySlug(
+    @Param('slug') slug: string,
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{
-    user: FormattedUserEntityWithoutSensitiveData;
+    user: FormattedUserWithoutSensitiveData;
     isItTheUserHimself: boolean;
   }> {
-    return await this.usersService.retrieveUserProfileById(+id, user);
+    return await this.usersService.findUserProfileBySlug(slug, user);
   }
 
-  @Patch(':id')
-  async update(
-    @Param('id') id: string,
+  @Patch(':slug')
+  async updateMyAccount(
+    @Param('slug') slug: string,
     @Body() updateUserDto: UpdateUserDto,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
-  ): Promise<{ user: UserEntityWithoutSensitiveData }> {
-    return await this.usersService.update(+id, updateUserDto, user.id);
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ): Promise<{ user: FormattedUserWithoutSensitiveData }> {
+    return await this.usersService.updateMyAccount(
+      slug,
+      updateUserDto,
+      user.slug
+    );
   }
 
-  @Delete(':id')
-  async remove(
-    @Param('id') id: string,
-    @Req() { user }: { user: UserEntityWithoutSensitiveData }
+  @Delete(':slug')
+  async deleteMyAccount(
+    @Param('slug') slug: string,
+    @Req() { user }: { user: UserWithoutSensitiveData }
   ) {
-    return await this.usersService.remove(+id, user.id);
+    return await this.usersService.deleteMyAccount(slug, user.slug);
   }
 }

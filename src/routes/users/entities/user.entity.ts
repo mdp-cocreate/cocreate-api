@@ -2,13 +2,13 @@ import { User } from '@prisma/client';
 
 type SensitiveData = 'password' | 'validateEmailToken' | 'resetPasswordToken';
 
-export type UserEntityWithoutSensitiveData = Omit<
+export type UserWithoutSensitiveData = Omit<
   User,
   SensitiveData | 'isEmailValidated'
 >;
 
-export type FormattedUserEntityWithoutSensitiveData = Omit<
-  UserEntityWithoutSensitiveData,
+export type FormattedUserWithoutSensitiveData = Omit<
+  UserWithoutSensitiveData,
   'profilePicture'
 > & {
   profilePicture: string | null;
