@@ -22,11 +22,11 @@ import { Project, ProjectItem, Role } from '@prisma/client';
 import { FormattedRetrievedProjectPreview } from './entities/project-preview.entity';
 
 @Controller('projects')
-@UseGuards(AuthGuard('jwt'))
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
   create(
     @Body() createProjectDto: CreateProjectDto,
     @Req() { user }: { user: UserWithoutSensitiveData }
@@ -35,11 +35,16 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll(): Promise<{ projects: Project[] }> {
-    return this.projectsService.findAll();
+  findAllProjectSlugs(): Promise<{
+    slugs: {
+      slug: string;
+    }[];
+  }> {
+    return this.projectsService.findAllProjectSlugs();
   }
 
   @Get('similar-domains')
+  @UseGuards(AuthGuard('jwt'))
   findProjectPreviewsThatMatchTheUsersDomains(
     @Query('skip') skip = 0,
     @Query('take') take = 5,
@@ -53,6 +58,7 @@ export class ProjectsController {
   }
 
   @Get('owned')
+  @UseGuards(AuthGuard('jwt'))
   findProjectPreviewsThatTheUserOwns(
     @Query('userId') userId: string | undefined = undefined,
     @Query('skip') skip = 0,
@@ -68,6 +74,7 @@ export class ProjectsController {
   }
 
   @Get('member')
+  @UseGuards(AuthGuard('jwt'))
   findProjectPreviewsOfWhichTheUserIsAMember(
     @Query('userId') userId: string | undefined = undefined,
     @Query('skip') skip = 0,
@@ -83,6 +90,7 @@ export class ProjectsController {
   }
 
   @Get(':slug')
+  @UseGuards(AuthGuard('jwt'))
   findProjectBySlug(
     @Param('slug') slug: string,
     @Req() { user }: { user: UserWithoutSensitiveData }
@@ -93,7 +101,18 @@ export class ProjectsController {
     return this.projectsService.findProjectBySlug(slug, user.id);
   }
 
+  @Get(':slug/metadata')
+  findProjectMetadata(@Param('slug') slug: string): Promise<{
+    metadata: {
+      name: string;
+      shortDescription: string;
+    };
+  }> {
+    return this.projectsService.findProjectMetadata(slug);
+  }
+
   @Patch(':slug')
+  @UseGuards(AuthGuard('jwt'))
   updateMyProject(
     @Param('slug') slug: string,
     @Body() updateProjectDto: UpdateProjectDto,
@@ -107,6 +126,7 @@ export class ProjectsController {
   }
 
   @Delete(':slug')
+  @UseGuards(AuthGuard('jwt'))
   deleteMyProject(
     @Param('slug') slug: string,
     @Req() { user }: { user: UserWithoutSensitiveData }
@@ -115,6 +135,7 @@ export class ProjectsController {
   }
 
   @Post(':slug/add-user')
+  @UseGuards(AuthGuard('jwt'))
   addUser(
     @Param('slug') slug: string,
     @Body() addUserDto: AddUserDto,
@@ -124,6 +145,7 @@ export class ProjectsController {
   }
 
   @Post(':slug/items')
+  @UseGuards(AuthGuard('jwt'))
   createItem(
     @Param('slug') slug: string,
     @Body() createItemDto: CreateItemDto,

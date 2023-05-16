@@ -76,62 +76,19 @@ export class ProjectsService {
     }
   }
 
-  async findAll(): Promise<{ projects: Project[] }> {
-    const projects = await this.prisma.project.findMany({
+  async findAllProjectSlugs(): Promise<{
+    slugs: {
+      slug: string;
+    }[];
+  }> {
+    const slugs = await this.prisma.project.findMany({
       where: { public: true },
-      include: {
-        skills: true,
-        members: {
-          select: {
-            role: true,
-            addedAt: true,
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                profilePicture: true,
-                registeredAt: true,
-              },
-            },
-          },
-        },
-        items: {
-          select: {
-            id: true,
-            name: true,
-            link: true,
-            associatedFile: true,
-            author: {
-              select: {
-                email: true,
-                firstName: true,
-                lastName: true,
-                profilePicture: true,
-              },
-            },
-          },
-        },
-        actions: {
-          select: {
-            author: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
-            name: true,
-            createdAt: true,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
+      select: {
+        slug: true,
       },
     });
 
-    return { projects };
+    return { slugs };
   }
 
   async findProjectPreviewsThatMatchTheUsersDomains(
@@ -375,7 +332,13 @@ export class ProjectsService {
       await this.prisma.project.findUnique({
         where: { slug },
         include: {
-          skills: true,
+          skills: {
+            select: {
+              id: true,
+              name: true,
+              domain: true,
+            },
+          },
           members: {
             select: {
               role: true,
@@ -426,6 +389,26 @@ export class ProjectsService {
       null;
 
     return { project: formattedProjectFound, currentUserRole };
+  }
+
+  async findProjectMetadata(slug: string): Promise<{
+    metadata: {
+      name: string;
+      shortDescription: string;
+    };
+  }> {
+    const metadata = await this.prisma.project.findUnique({
+      where: { slug },
+      select: {
+        name: true,
+        shortDescription: true,
+      },
+    });
+
+    if (!metadata)
+      throw new NotFoundException(`project with slug "${slug} was not found"`);
+
+    return { metadata };
   }
 
   async updateMyProject(

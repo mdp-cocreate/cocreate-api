@@ -89,6 +89,26 @@ export class UsersService {
     return { user: formattedUser, isItTheUserHimself };
   }
 
+  async findUserMetadata(slug: string): Promise<{
+    metadata: {
+      firstName: string;
+      lastName: string;
+    };
+  }> {
+    const metadata = await this.prisma.user.findUnique({
+      where: { slug },
+      select: {
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    if (!metadata)
+      throw new NotFoundException(`user with slug "${slug} was not found"`);
+
+    return { metadata };
+  }
+
   async updateMyAccount(
     slug: string,
     updateUserDto: UpdateUserDto,

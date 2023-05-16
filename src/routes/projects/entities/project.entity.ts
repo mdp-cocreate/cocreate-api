@@ -1,7 +1,7 @@
 import { Project, Role, Skill } from '@prisma/client';
 
 export type RetrievedProject = Project & {
-  skills: Skill[];
+  skills: Omit<Skill, 'domainId'>[];
   members: RetrievedProjectMember[];
 };
 
