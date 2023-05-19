@@ -7,7 +7,9 @@ import {
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
+  FormattedRetrievedUserProfile,
   FormattedUserWithoutSensitiveData,
+  RetrievedUserProfile,
   UserWithoutSensitiveData,
 } from './entities/user.entity';
 import { handleError } from 'src/utils/handleError';
@@ -50,39 +52,39 @@ export class UsersService {
     slug: string,
     author: UserWithoutSensitiveData
   ): Promise<{
-    user: FormattedUserWithoutSensitiveData;
+    user: FormattedRetrievedUserProfile;
     isItTheUserHimself: boolean;
   }> {
     const isItTheUserHimself = slug === author.slug;
-    if (isItTheUserHimself) {
-      const formattedAuthor: FormattedUserWithoutSensitiveData = {
-        ...author,
-        profilePicture: author.profilePicture
-          ? bufferToImgSrc(author.profilePicture)
-          : null,
-      };
-      return { user: formattedAuthor, isItTheUserHimself };
-    }
 
-    const userFound = await this.prisma.user.findUnique({
-      where: { slug },
-    });
+    const userFound: RetrievedUserProfile | null =
+      await this.prisma.user.findUnique({
+        where: { slug },
+        select: {
+          id: true,
+          slug: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          profilePicture: true,
+          registeredAt: true,
+          skills: {
+            include: {
+              domain: true,
+            },
+          },
+          actions: true,
+          isEmailValidated: true,
+        },
+      });
 
-    if (!userFound || !userFound?.isEmailValidated)
+    if (!userFound || !userFound.isEmailValidated)
       throw new NotFoundException(`user with slug "${slug}" does not exist`);
 
-    const {
-      password,
-      resetPasswordToken,
-      validateEmailToken,
-      isEmailValidated,
-      ...formattedUserFound
-    } = userFound;
-
-    const formattedUser: FormattedUserWithoutSensitiveData = {
-      ...formattedUserFound,
-      profilePicture: formattedUserFound.profilePicture
-        ? bufferToImgSrc(formattedUserFound.profilePicture)
+    const formattedUser: FormattedRetrievedUserProfile = {
+      ...userFound,
+      profilePicture: userFound.profilePicture
+        ? bufferToImgSrc(userFound.profilePicture)
         : null,
     };
 
