@@ -11,6 +11,7 @@ import {
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {
+  FormattedRetrievedUserProfile,
   FormattedUserWithoutSensitiveData,
   UserWithoutSensitiveData,
 } from './entities/user.entity';
@@ -47,7 +48,7 @@ export class UsersController {
     @Param('slug') slug: string,
     @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{
-    user: FormattedUserWithoutSensitiveData;
+    user: FormattedRetrievedUserProfile;
     isItTheUserHimself: boolean;
   }> {
     return await this.usersService.findUserProfileBySlug(slug, user);
