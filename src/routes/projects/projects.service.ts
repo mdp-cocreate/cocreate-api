@@ -4,7 +4,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Project, ProjectItem, Role } from '@prisma/client';
+import {
+  DomainName,
+  Project,
+  ProjectItem,
+  Role,
+  SkillName,
+} from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -74,6 +80,143 @@ export class ProjectsService {
     } catch (e: unknown) {
       throw handleError(e);
     }
+  }
+
+  async getSearchedProjects(
+    query: string,
+    domains: string,
+    skills: string
+  ): Promise<{
+    projects: FormattedRetrievedProjectPreview[];
+  }> {
+    const domainsArray = domains ? (domains.split(',') as DomainName[]) : null;
+    const skillsArray = skills ? (skills.split(',') as SkillName[]) : null;
+
+    const skillsOrDomainsFilter = skillsArray
+      ? {
+          some: {
+            name: {
+              in: skillsArray,
+            },
+          },
+        }
+      : domainsArray
+      ? {
+          some: {
+            domain: {
+              name: {
+                in: domainsArray,
+              },
+            },
+          },
+        }
+      : undefined;
+
+    const previews: RetrievedProjectPreview[] =
+      await this.prisma.project.findMany({
+        where: {
+          public: true,
+          skills: skillsOrDomainsFilter,
+          OR: query
+            ? [
+                { name: { contains: query } },
+                { shortDescription: { contains: query } },
+                { description: { contains: query } },
+              ]
+            : undefined,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          shortDescription: true,
+          createdAt: true,
+          coverImage: true,
+          members: {
+            select: {
+              role: true,
+              user: {
+                select: {
+                  id: true,
+                  slug: true,
+                  profilePicture: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+    const formattedPreviews: FormattedRetrievedProjectPreview[] = previews.map(
+      (preview) => {
+        return {
+          ...preview,
+          coverImage: preview.coverImage
+            ? bufferToImgSrc(preview.coverImage)
+            : null,
+          members: preview.members.map((member) => ({
+            ...member,
+            user: {
+              ...member.user,
+              profilePicture: member.user.profilePicture
+                ? bufferToImgSrc(member.user.profilePicture)
+                : null,
+            },
+          })),
+        };
+      }
+    );
+
+    return { projects: formattedPreviews };
+  }
+
+  async getSearchedProjectsCount(
+    query: string,
+    domains: string,
+    skills: string
+  ): Promise<{
+    count: number;
+  }> {
+    const domainsArray = domains ? (domains.split(',') as DomainName[]) : null;
+    const skillsArray = skills ? (skills.split(',') as SkillName[]) : null;
+
+    const skillsOrDomainsFilter = skillsArray
+      ? {
+          some: {
+            name: {
+              in: skillsArray,
+            },
+          },
+        }
+      : domainsArray
+      ? {
+          some: {
+            domain: {
+              name: {
+                in: domainsArray,
+              },
+            },
+          },
+        }
+      : undefined;
+
+    const count = await this.prisma.project.count({
+      where: {
+        public: true,
+        skills: skillsOrDomainsFilter,
+        OR: query
+          ? [
+              { name: { contains: query } },
+              { shortDescription: { contains: query } },
+              { description: { contains: query } },
+            ]
+          : undefined,
+      },
+    });
+
+    return { count };
   }
 
   async findAllProjectSlugs(): Promise<{

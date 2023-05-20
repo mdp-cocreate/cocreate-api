@@ -34,6 +34,28 @@ export class ProjectsController {
     return this.projectsService.create(createProjectDto, user.id);
   }
 
+  @Get('/search')
+  getSearchedProjects(
+    @Query('query') query: string,
+    @Query('domains') domains: string,
+    @Query('skills') skills: string
+  ): Promise<{ projects: FormattedRetrievedProjectPreview[] }> {
+    return this.projectsService.getSearchedProjects(query, domains, skills);
+  }
+
+  @Get('/search-count')
+  getSearchedProjectsCount(
+    @Query('query') query: string,
+    @Query('domains') domains: string,
+    @Query('skills') skills: string
+  ): Promise<{ count: number }> {
+    return this.projectsService.getSearchedProjectsCount(
+      query,
+      domains,
+      skills
+    );
+  }
+
   @Get()
   findAllProjectSlugs(): Promise<{
     slugs: {
