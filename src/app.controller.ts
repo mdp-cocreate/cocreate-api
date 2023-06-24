@@ -15,9 +15,11 @@ export class AppController {
 
   @Get('skills')
   async getSkillsByDomains(
-    @Query('domains') domains: string
+    @Query('domains') domains: string | undefined
   ): Promise<{ skills: Skill[] }> {
-    const domainList = domains.split(',');
-    return await this.appService.getSkillsByDomains(domainList as DomainName[]);
+    const domainList = domains?.split(',');
+    return await this.appService.getSkillsByDomains(
+      domainList as DomainName[] | undefined
+    );
   }
 }

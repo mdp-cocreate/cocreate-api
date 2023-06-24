@@ -18,7 +18,7 @@ export class AppService {
     }
   }
 
-  async getSkillsByDomains(domains: DomainName[]) {
+  async getSkillsByDomains(domains: DomainName[] | undefined) {
     const skills = await this.prisma.skill.findMany({
       where: {
         domain: {

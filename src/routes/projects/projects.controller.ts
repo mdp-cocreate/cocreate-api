@@ -18,7 +18,7 @@ import { FormattedRetrievedProject } from './entities/project.entity';
 import { CreateItemDto } from './dto/create-item-dto';
 import { UserWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
 import { AddUserDto } from './dto/add-user-dto';
-import { Project, ProjectItem, Role } from '@prisma/client';
+import { JoinRequest, Project, ProjectItem, Role } from '@prisma/client';
 import { FormattedRetrievedProjectPreview } from './entities/project-preview.entity';
 
 @Controller('projects')
@@ -154,6 +154,24 @@ export class ProjectsController {
     @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ project: Project }> {
     return this.projectsService.removeMyProject(slug, user.id);
+  }
+
+  @Post(':id/ask-to-join')
+  @UseGuards(AuthGuard('jwt'))
+  askToJoinAProject(
+    @Param('id') id: string,
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ) {
+    return this.projectsService.askToJoinProject(+id, user.id);
+  }
+
+  @Get(':id/join-requests')
+  @UseGuards(AuthGuard('jwt'))
+  getJoinRequests(
+    @Param('id') id: string,
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ): Promise<{ joinRequests: JoinRequest[] }> {
+    return this.projectsService.getJoinRequests(+id, user.id);
   }
 
   @Post(':slug/add-user')

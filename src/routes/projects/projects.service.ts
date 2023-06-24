@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -6,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   DomainName,
+  JoinRequest,
   Project,
   ProjectItem,
   Role,
@@ -659,6 +661,92 @@ export class ProjectsService {
       return { project: projectDeleted };
     } catch (e: unknown) {
       throw handleError(e);
+    }
+  }
+
+  async askToJoinProject(projectId: number, authorId: number) {
+    const projectToJoin = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: {
+        members: {
+          select: {
+            user: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!projectToJoin)
+      throw new NotFoundException(
+        `project with id "${projectId}" does not exist`
+      );
+
+    if (projectToJoin.members.some((member) => member.user.id === authorId))
+      throw new ConflictException(`you are already a member of this project`);
+
+    try {
+      await this.prisma.joinRequest.create({
+        data: {
+          projectId,
+          userId: authorId,
+        },
+      });
+    } catch (error) {
+      throw handleError(error);
+    }
+  }
+
+  async getJoinRequests(
+    projectId: number,
+    authorId: number
+  ): Promise<{ joinRequests: JoinRequest[] }> {
+    const projectFound = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: {
+        members: {
+          select: {
+            role: true,
+            user: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!projectFound)
+      throw new NotFoundException(
+        `project with id "${projectId}" does not exist`
+      );
+
+    const projectOwner = projectFound.members.find(
+      (member) => member.role === Role.OWNER
+    );
+
+    if (!projectOwner)
+      throw new InternalServerErrorException(`this project has no owner`);
+
+    if (authorId !== projectOwner.user.id)
+      throw new ForbiddenException(
+        `only the owner of this project can get its join requests`
+      );
+
+    try {
+      const joinRequests = await this.prisma.joinRequest.findMany({
+        where: {
+          projectId,
+        },
+      });
+
+      return { joinRequests };
+    } catch (error) {
+      throw handleError(error);
     }
   }
 
