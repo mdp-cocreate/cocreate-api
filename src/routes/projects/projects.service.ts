@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import {
   DomainName,
-  JoinRequest,
   Project,
   ProjectItem,
   Role,
@@ -31,6 +30,7 @@ import {
   RetrievedProjectPreview,
 } from './entities/project-preview.entity';
 import slugify from 'slugify';
+import { RetrievedJoinRequest } from './entities/join-request.entity';
 
 @Injectable()
 export class ProjectsService {
@@ -700,10 +700,10 @@ export class ProjectsService {
     }
   }
 
-  async getJoinRequests(
+  async getJoinRequestsByProject(
     projectId: number,
     authorId: number
-  ): Promise<{ joinRequests: JoinRequest[] }> {
+  ): Promise<{ joinRequests: RetrievedJoinRequest[] }> {
     const projectFound = await this.prisma.project.findUnique({
       where: { id: projectId },
       select: {
@@ -738,16 +738,68 @@ export class ProjectsService {
       );
 
     try {
-      const joinRequests = await this.prisma.joinRequest.findMany({
-        where: {
-          projectId,
-        },
-      });
+      const joinRequests: RetrievedJoinRequest[] =
+        await this.prisma.joinRequest.findMany({
+          where: {
+            projectId,
+          },
+          select: {
+            user: {
+              select: {
+                slug: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            project: {
+              select: {
+                slug: true,
+                name: true,
+              },
+            },
+            createdAt: true,
+          },
+        });
 
       return { joinRequests };
     } catch (error) {
       throw handleError(error);
     }
+  }
+
+  async getJoinRequests(
+    authorId: number
+  ): Promise<{ joinRequests: RetrievedJoinRequest[] }> {
+    const projectsThatTheUserOwns = await this.prisma.projectToMember.findMany({
+      where: { userId: authorId, role: Role.OWNER },
+      select: {
+        project: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    const projectIdsThatTheUserOwns = projectsThatTheUserOwns.map(
+      (project) => project.project.id
+    );
+
+    let allJoinRequests: RetrievedJoinRequest[] = [];
+
+    for (const projectId of projectIdsThatTheUserOwns) {
+      const joinRequestsForThisProject = await this.getJoinRequestsByProject(
+        projectId,
+        authorId
+      );
+
+      allJoinRequests = [
+        ...allJoinRequests,
+        ...joinRequestsForThisProject.joinRequests,
+      ];
+    }
+
+    return { joinRequests: allJoinRequests };
   }
 
   async addUser(slug: string, addUserDto: AddUserDto, authorId: number) {

@@ -18,8 +18,9 @@ import { FormattedRetrievedProject } from './entities/project.entity';
 import { CreateItemDto } from './dto/create-item-dto';
 import { UserWithoutSensitiveData } from 'src/routes/users/entities/user.entity';
 import { AddUserDto } from './dto/add-user-dto';
-import { JoinRequest, Project, ProjectItem, Role } from '@prisma/client';
+import { Project, ProjectItem, Role } from '@prisma/client';
 import { FormattedRetrievedProjectPreview } from './entities/project-preview.entity';
+import { RetrievedJoinRequest } from './entities/join-request.entity';
 
 @Controller('projects')
 export class ProjectsController {
@@ -95,6 +96,14 @@ export class ProjectsController {
     );
   }
 
+  @Get('join-requests')
+  @UseGuards(AuthGuard('jwt'))
+  getJoinRequests(
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ): Promise<{ joinRequests: RetrievedJoinRequest[] }> {
+    return this.projectsService.getJoinRequests(user.id);
+  }
+
   @Get('member')
   @UseGuards(AuthGuard('jwt'))
   findProjectPreviewsOfWhichTheUserIsAMember(
@@ -167,11 +176,11 @@ export class ProjectsController {
 
   @Get(':id/join-requests')
   @UseGuards(AuthGuard('jwt'))
-  getJoinRequests(
+  getJoinRequestsByProject(
     @Param('id') id: string,
     @Req() { user }: { user: UserWithoutSensitiveData }
-  ): Promise<{ joinRequests: JoinRequest[] }> {
-    return this.projectsService.getJoinRequests(+id, user.id);
+  ): Promise<{ joinRequests: RetrievedJoinRequest[] }> {
+    return this.projectsService.getJoinRequestsByProject(+id, user.id);
   }
 
   @Post(':slug/add-user')
