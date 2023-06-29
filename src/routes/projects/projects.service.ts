@@ -490,9 +490,23 @@ export class ProjectsService {
               user: {
                 select: {
                   id: true,
+                  slug: true,
                   firstName: true,
                   lastName: true,
                   profilePicture: true,
+                },
+              },
+            },
+          },
+          actions: {
+            select: {
+              name: true,
+              createdAt: true,
+              author: {
+                select: {
+                  slug: true,
+                  firstName: true,
+                  lastName: true,
                 },
               },
             },
