@@ -21,6 +21,7 @@ import { AddUserDto } from './dto/add-user-dto';
 import { Project, ProjectItem, Role } from '@prisma/client';
 import { FormattedRetrievedProjectPreview } from './entities/project-preview.entity';
 import { RetrievedJoinRequest } from './entities/join-request.entity';
+import { ManageJoinRequestDto } from './dto/manage-join-request-dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -128,6 +129,7 @@ export class ProjectsController {
   ): Promise<{
     project: FormattedRetrievedProject;
     currentUserRole: Role | null;
+    hasRequestedToJoin: boolean;
   }> {
     return this.projectsService.findProjectBySlug(slug, user.id);
   }
@@ -181,6 +183,32 @@ export class ProjectsController {
     @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ joinRequests: RetrievedJoinRequest[] }> {
     return this.projectsService.getJoinRequestsByProject(+id, user.id);
+  }
+
+  @Post('accept-join-request')
+  @UseGuards(AuthGuard('jwt'))
+  acceptJoinRequest(
+    @Body() manageJoinRequestDto: ManageJoinRequestDto,
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ) {
+    return this.projectsService.manageJoinRequest(
+      manageJoinRequestDto,
+      user.id,
+      'accept'
+    );
+  }
+
+  @Post('deny-join-request')
+  @UseGuards(AuthGuard('jwt'))
+  denyJoinRequest(
+    @Body() manageJoinRequestDto: ManageJoinRequestDto,
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ) {
+    return this.projectsService.manageJoinRequest(
+      manageJoinRequestDto,
+      user.id,
+      'deny'
+    );
   }
 
   @Post(':slug/add-user')

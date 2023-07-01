@@ -112,16 +112,13 @@ export class UsersService {
   }
 
   async updateMyAccount(
-    slug: string,
     updateUserDto: UpdateUserDto,
     authorSlug: string
   ): Promise<{ user: FormattedUserWithoutSensitiveData }> {
-    if (slug !== authorSlug) throw new ForbiddenException();
-
     const { skills, ...data } = updateUserDto;
 
     const userToUpdate = await this.prisma.user.findUnique({
-      where: { slug },
+      where: { slug: authorSlug },
       select: {
         isEmailValidated: true,
       },
@@ -132,7 +129,7 @@ export class UsersService {
 
     try {
       const userUpdated = await this.prisma.user.update({
-        where: { slug },
+        where: { slug: authorSlug },
         include: {
           skills: true,
         },

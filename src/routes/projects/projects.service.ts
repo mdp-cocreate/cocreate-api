@@ -31,6 +31,7 @@ import {
 } from './entities/project-preview.entity';
 import slugify from 'slugify';
 import { RetrievedJoinRequest } from './entities/join-request.entity';
+import { ManageJoinRequestDto } from './dto/manage-join-request-dto';
 
 @Injectable()
 export class ProjectsService {
@@ -472,6 +473,7 @@ export class ProjectsService {
   ): Promise<{
     project: FormattedRetrievedProject;
     currentUserRole: Role | null;
+    hasRequestedToJoin: boolean;
   }> {
     const projectFound: RetrievedProject | null =
       await this.prisma.project.findUnique({
@@ -547,7 +549,22 @@ export class ProjectsService {
       projectFound.members.find((member) => member.user.id === userId)?.role ||
       null;
 
-    return { project: formattedProjectFound, currentUserRole };
+    let hasRequestedToJoin = false;
+    const joinRequest = await this.prisma.joinRequest.findFirst({
+      where: {
+        userId,
+        project: {
+          slug,
+        },
+      },
+    });
+    if (joinRequest) hasRequestedToJoin = true;
+
+    return {
+      project: formattedProjectFound,
+      currentUserRole,
+      hasRequestedToJoin,
+    };
   }
 
   async findProjectMetadata(slug: string): Promise<{
@@ -776,6 +793,81 @@ export class ProjectsService {
         });
 
       return { joinRequests };
+    } catch (error) {
+      throw handleError(error);
+    }
+  }
+
+  async manageJoinRequest(
+    { projectSlug, userSlug }: ManageJoinRequestDto,
+    authorId: number,
+    type: 'accept' | 'deny'
+  ) {
+    try {
+      const project = await this.prisma.project.findUnique({
+        where: {
+          slug: projectSlug,
+        },
+        select: {
+          id: true,
+          members: {
+            where: {
+              role: Role.OWNER,
+            },
+            select: {
+              user: {
+                select: {
+                  id: true,
+                },
+              },
+              role: true,
+            },
+          },
+        },
+      });
+
+      if (!project) throw new NotFoundException('this project does not exist');
+
+      const ownerOfThisProject = project.members.find(
+        (member) => member.role === Role.OWNER
+      );
+
+      if (ownerOfThisProject?.user.id !== authorId)
+        throw new ForbiddenException(
+          'only the owner of this project can manage its join requests'
+        );
+
+      const joinRequest = await this.prisma.joinRequest.findFirst({
+        where: {
+          user: {
+            slug: userSlug,
+          },
+          project: {
+            slug: projectSlug,
+          },
+        },
+      });
+
+      if (!joinRequest)
+        throw new NotFoundException('this join request does not exist');
+
+      if (type === 'accept') {
+        await this.prisma.projectToMember.create({
+          data: {
+            projectId: joinRequest.projectId,
+            userId: joinRequest.userId,
+          },
+        });
+      }
+
+      await this.prisma.joinRequest.delete({
+        where: {
+          projectId_userId: {
+            projectId: joinRequest.projectId,
+            userId: joinRequest.userId,
+          },
+        },
+      });
     } catch (error) {
       throw handleError(error);
     }

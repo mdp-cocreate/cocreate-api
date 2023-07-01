@@ -64,18 +64,13 @@ export class UsersController {
     return this.usersService.findUserMetadata(slug);
   }
 
-  @Patch(':slug')
+  @Patch()
   @UseGuards(AuthGuard('jwt'))
   async updateMyAccount(
-    @Param('slug') slug: string,
     @Body() updateUserDto: UpdateUserDto,
     @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ user: FormattedUserWithoutSensitiveData }> {
-    return await this.usersService.updateMyAccount(
-      slug,
-      updateUserDto,
-      user.slug
-    );
+    return await this.usersService.updateMyAccount(updateUserDto, user.slug);
   }
 
   @Delete(':slug')
