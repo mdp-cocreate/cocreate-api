@@ -16,7 +16,8 @@
     "tsc": "tsc",
     "lint": "eslint ./src/*",
     "lint:fix": "eslint ./src/* --fix",
-    "test": "jest --testPathPattern=dist/ --rootDir=./"
+    "test": "jest --testPathPattern=dist/ --rootDir=./",
+    "heroku-postbuild": "npm install --legacy-peer-deps && npm build"
   },
   "repository": {
     "type": "git",
@@ -33,8 +34,8 @@
   },
   "homepage": "https://github.com/mdp-cocreate/cocreate-backend#readme",
   "dependencies": {
-    "@nestjs/common": "^9.3.9",
-    "@nestjs/config": "^2.3.1",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^2.3.4",
     "@nestjs/core": "^9.3.9",
     "@nestjs/jwt": "^10.0.2",
     "@nestjs/mapped-types": "^1.2.2",
