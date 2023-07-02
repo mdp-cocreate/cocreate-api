@@ -1,14 +1,18 @@
 {
   "name": "cocreate-backend",
   "version": "1.0.0",
+  "engines": {
+    "node": "18.16.0",
+    "npm": "9.5.1"
+  },
   "description": "/",
   "scripts": {
     "db:init": "npx prisma migrate dev && npx prisma db seed",
-    "build": "nest build",
+    "build": "npx nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main",
     "tsc": "tsc",
     "lint": "eslint ./src/*",
     "lint:fix": "eslint ./src/* --fix",
@@ -75,8 +79,5 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
-  },
-  "engines": {
-    "node": "18.16.0"
   }
 }
