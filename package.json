@@ -17,7 +17,7 @@
     "lint": "eslint ./src/*",
     "lint:fix": "eslint ./src/* --fix",
     "test": "jest --testPathPattern=dist/ --rootDir=./",
-    "heroku-postbuild": "npm install --legacy-peer-deps && npm build"
+    "heroku-postbuild": "npm install --force && npm build"
   },
   "repository": {
     "type": "git",
