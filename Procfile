@@ -1,2 +1,1 @@
-web: npm run db:init
-web: npm run start:prod
+web: npm run db:init && npm run start:prod
