@@ -97,14 +97,6 @@ export class ProjectsController {
     );
   }
 
-  @Get('join-requests')
-  @UseGuards(AuthGuard('jwt'))
-  getJoinRequests(
-    @Req() { user }: { user: UserWithoutSensitiveData }
-  ): Promise<{ joinRequests: RetrievedJoinRequest[] }> {
-    return this.projectsService.getJoinRequests(user.id);
-  }
-
   @Get('member')
   @UseGuards(AuthGuard('jwt'))
   findProjectPreviewsOfWhichTheUserIsAMember(
@@ -119,6 +111,14 @@ export class ProjectsController {
       +take,
       user.id
     );
+  }
+
+  @Get('join-requests')
+  @UseGuards(AuthGuard('jwt'))
+  getJoinRequests(
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ): Promise<{ joinRequests: RetrievedJoinRequest[] }> {
+    return this.projectsService.getJoinRequests(user.id);
   }
 
   @Get(':slug')

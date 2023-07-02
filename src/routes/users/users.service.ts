@@ -48,6 +48,43 @@ export class UsersService {
     return { users };
   }
 
+  async getCurrentUserProfile(userId: number): Promise<{
+    user: FormattedRetrievedUserProfile;
+  }> {
+    const userFound: RetrievedUserProfile | null =
+      await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          slug: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          profilePicture: true,
+          registeredAt: true,
+          skills: {
+            include: {
+              domain: true,
+            },
+          },
+          actions: true,
+          isEmailValidated: true,
+        },
+      });
+
+    if (!userFound || !userFound.isEmailValidated)
+      throw new NotFoundException(`user with id "${userId}" does not exist`);
+
+    const formattedUser: FormattedRetrievedUserProfile = {
+      ...userFound,
+      profilePicture: userFound.profilePicture
+        ? bufferToImgSrc(userFound.profilePicture)
+        : null,
+    };
+
+    return { user: formattedUser };
+  }
+
   async findUserProfileBySlug(
     slug: string,
     author: UserWithoutSensitiveData
@@ -162,11 +199,9 @@ export class UsersService {
     }
   }
 
-  async deleteMyAccount(slug: string, authorSlug: string) {
-    if (slug !== authorSlug) throw new ForbiddenException();
-
+  async deleteMyAccount(authorSlug: string) {
     const userToDelete = await this.prisma.user.findUnique({
-      where: { slug },
+      where: { slug: authorSlug },
       select: {
         isEmailValidated: true,
       },
@@ -177,7 +212,7 @@ export class UsersService {
 
     try {
       await this.prisma.user.delete({
-        where: { slug },
+        where: { slug: authorSlug },
       });
     } catch (e: unknown) {
       throw handleError(e);

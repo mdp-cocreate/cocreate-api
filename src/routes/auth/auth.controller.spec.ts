@@ -24,7 +24,7 @@ describe('AuthController (e2e)', () => {
     it('should return a token when provided with valid credentials and a validated email', async () => {
       const loginDto = {
         email: 'edgarcresson@hotmail.com',
-        password: 'ItachiUchiha2',
+        password: process.env.ADMIN_PASSWORD,
       };
 
       const response = await request(app.getHttpServer())

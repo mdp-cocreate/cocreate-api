@@ -1,7 +1,8 @@
 import { PrismaClient, DomainName, SkillName, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { profilePicture } from './images/profilePicture';
-import { cover } from './images/cover';
+import { edgar } from './images/edgar';
+import { cocreate } from './images/cocreate';
+import { theo } from './images/theo';
 
 function base64ToBuffer(base64Image: string): Buffer {
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
@@ -89,7 +90,7 @@ async function seed() {
         password: await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10),
         firstName: 'Edgar',
         lastName: 'Cresson',
-        profilePicture: base64ToBuffer(profilePicture),
+        profilePicture: base64ToBuffer(edgar),
         skills: {
           connect: [
             { name: SkillName.FRONTEND_DEVELOPMENT },
@@ -108,7 +109,7 @@ async function seed() {
         password: await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10),
         firstName: 'Théo',
         lastName: 'Lefèvre',
-        profilePicture: base64ToBuffer(profilePicture),
+        profilePicture: base64ToBuffer(theo),
         skills: {
           connect: [
             { name: SkillName.WIREFRAMING },
@@ -116,6 +117,7 @@ async function seed() {
             { name: SkillName.COLOR_THEORY },
           ],
         },
+        isEmailValidated: true,
       },
     });
     const user3 = await prisma.user.create({
@@ -126,7 +128,7 @@ async function seed() {
         password: await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10),
         firstName: 'John',
         lastName: 'Doe',
-        profilePicture: base64ToBuffer(profilePicture),
+        profilePicture: null,
         skills: {
           connect: [
             { name: SkillName.DIGITAL_STRATEGY },
@@ -136,6 +138,7 @@ async function seed() {
             { name: SkillName.MOTION_GRAPHICS },
           ],
         },
+        isEmailValidated: true,
       },
     });
 
@@ -144,9 +147,11 @@ async function seed() {
       data: {
         name: 'Cocreate',
         slug: 'cocreate',
-        shortDescription: 'Description courte du projet 1',
-        description: 'Description détaillée du projet 1',
-        coverImage: base64ToBuffer(cover),
+        shortDescription:
+          'Application web permettant de mettre en relation les différents acteurs du digital, sur des projets digitaux',
+        description:
+          "L'objectif principal de Cocreate était de faciliter la mise en relation des personnes partageant les mêmes intérêts et compétences, ou des compétences complémentaires (ex : développeur avec UX/UI designer), afin qu'elles puissent collaborer de manière efficace et épanouissante. L'application devait être un espace virtuel où les utilisateurs pourraient présenter leurs idées de projet et rechercher des partenaires potentiels. Que ce soit pour la création d'une application mobile, le développement d'un site web innovant, ou même la réalisation d'un projet artistique, Cocreate offrait la possibilité de trouver les personnes adéquates pour travailler main dans la main, en étant sur la même longueur d’onde.",
+        coverImage: base64ToBuffer(cocreate),
         skills: {
           connect: [
             { name: SkillName.FRONTEND_DEVELOPMENT },
@@ -155,6 +160,8 @@ async function seed() {
             { name: SkillName.USER_RESEARCH },
             { name: SkillName.WIREFRAMING },
             { name: SkillName.USER_CENTERED_DESIGN },
+            { name: SkillName.CONTENT_MARKETING },
+            { name: SkillName.SOCIAL_MEDIA_MARKETING },
           ],
         },
         members: {
@@ -162,10 +169,6 @@ async function seed() {
             {
               user: { connect: { id: admin.id } },
               role: Role.OWNER,
-            },
-            {
-              user: { connect: { id: designer.id } },
-              role: Role.EDITOR,
             },
           ],
         },
@@ -175,17 +178,21 @@ async function seed() {
               author: { connect: { id: admin.id } },
               name: 'a créé le projet',
             },
+            {
+              author: { connect: { id: admin.id } },
+              name: 'a développé le projet',
+            },
           ],
         },
       },
     });
+
     await prisma.project.create({
       data: {
         name: 'Projet 2',
         slug: 'projet-2',
         shortDescription: 'Description courte du projet 2',
         description: 'Description détaillée du projet 2',
-        coverImage: base64ToBuffer(cover),
         skills: {
           connect: [
             { name: SkillName.MOTION_GRAPHICS },
@@ -216,7 +223,6 @@ async function seed() {
         slug: 'projet-3',
         shortDescription: 'Description courte du projet 3',
         description: 'Description détaillée du projet 3',
-        coverImage: base64ToBuffer(cover),
         skills: {
           connect: [
             { name: SkillName.USER_RESEARCH },
@@ -247,7 +253,6 @@ async function seed() {
         slug: 'projet-4',
         shortDescription: 'Description courte du projet 4',
         description: 'Description détaillée du projet 4',
-        coverImage: base64ToBuffer(cover),
         skills: {
           connect: [{ name: SkillName.DATA_ENGINEERING }],
         },
@@ -275,7 +280,6 @@ async function seed() {
         slug: 'projet-5',
         shortDescription: 'Description courte du projet 5',
         description: 'Description détaillée du projet 5',
-        coverImage: base64ToBuffer(cover),
         skills: {
           connect: [{ name: SkillName.WEB_DEVELOPMENT }],
         },
@@ -298,9 +302,19 @@ async function seed() {
       },
     });
 
-    // TODO ProjectItems
-
-    // TODO JoinRequests
+    // JoinRequests
+    await prisma.joinRequest.create({
+      data: {
+        userId: designer.id,
+        projectId: 1,
+      },
+    });
+    await prisma.joinRequest.create({
+      data: {
+        userId: user3.id,
+        projectId: 1,
+      },
+    });
 
     // eslint-disable-next-line no-console
     console.log('Data initialized successfully');

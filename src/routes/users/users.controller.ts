@@ -16,7 +16,6 @@ import {
   UserWithoutSensitiveData,
 } from './entities/user.entity';
 import { AuthGuard } from '@nestjs/passport';
-import { bufferToImgSrc } from 'src/utils/bufferToImgSrc';
 
 @Controller('users')
 export class UsersController {
@@ -30,16 +29,12 @@ export class UsersController {
 
   @Get('current')
   @UseGuards(AuthGuard('jwt'))
-  getCurrentUserProfile(@Req() { user }: { user: UserWithoutSensitiveData }): {
-    user: FormattedUserWithoutSensitiveData;
-  } {
-    const formattedUser: FormattedUserWithoutSensitiveData = {
-      ...user,
-      profilePicture: user.profilePicture
-        ? bufferToImgSrc(user.profilePicture)
-        : null,
-    };
-    return { user: formattedUser };
+  async getCurrentUserProfile(
+    @Req() { user }: { user: UserWithoutSensitiveData }
+  ): Promise<{
+    user: FormattedRetrievedUserProfile;
+  }> {
+    return await this.usersService.getCurrentUserProfile(+user.id);
   }
 
   @Get(':slug')
@@ -75,10 +70,7 @@ export class UsersController {
 
   @Delete(':slug')
   @UseGuards(AuthGuard('jwt'))
-  async deleteMyAccount(
-    @Param('slug') slug: string,
-    @Req() { user }: { user: UserWithoutSensitiveData }
-  ) {
-    return await this.usersService.deleteMyAccount(slug, user.slug);
+  async deleteMyAccount(@Req() { user }: { user: UserWithoutSensitiveData }) {
+    return await this.usersService.deleteMyAccount(user.slug);
   }
 }
