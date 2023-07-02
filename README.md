@@ -1,5 +1,5 @@
 # Cocreate API
-API of Cocreate, a web application that connects digital players for digital projects.
+The API of Cocreate, a web application that connects digital players for digital projects.
 
 ## Installation
 ```zsh
