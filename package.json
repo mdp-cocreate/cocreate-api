@@ -16,8 +16,7 @@
     "tsc": "tsc",
     "lint": "eslint ./src/*",
     "lint:fix": "eslint ./src/* --fix",
-    "test": "jest --testPathPattern=dist/ --rootDir=./",
-    "heroku-postbuild": "npm install --force && npm build"
+    "test": "jest --testPathPattern=dist/ --rootDir=./"
   },
   "repository": {
     "type": "git",
