@@ -9,9 +9,9 @@
   "scripts": {
     "db:init": "npx prisma migrate dev && npx prisma db seed",
     "build": "npx nest build",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
+    "start": "npx nest start",
+    "start:dev": "npx nest start --watch",
+    "start:debug": "npx nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "tsc": "tsc",
     "lint": "eslint ./src/*",
