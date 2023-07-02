@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,58 +7,74 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Users {
-  id             Int                 @id @default(autoincrement())
-  email          String              @unique
-  password       String
-  firstName      String
-  lastName       String
-  country        String?
-  profilePicture Bytes?
-  registeredAt   DateTime            @default(now())
-  projects       ProjectsToMembers[]
-  domains        Domains[]
-  contributions  ProjectItems[]
-  actions        Actions[]
+model Domain {
+  id     Int        @id @default(autoincrement())
+  name   DomainName @unique
+  skills Skill[]
 }
 
-model Projects {
-  id          Int                 @id @default(autoincrement())
-  name        String
-  description String              @db.Text
-  coverImage  Bytes?
-  public      Boolean             @default(true)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  members     ProjectsToMembers[]
-  domains     Domains[]
-  items       ProjectItems[]
-  actions     Actions[]
+model Skill {
+  id       Int       @id @default(autoincrement())
+  name     SkillName @unique
+  domain   Domain    @relation(fields: [domainId], references: [id])
+  domainId Int
+  users    User[]
+  projects Project[]
 }
 
-model Domains {
-  id       Int        @id @default(autoincrement())
-  name     Domain     @unique
-  users    Users[]
-  projects Projects[]
+model User {
+  id                 Int               @id @default(autoincrement())
+  slug               String            @unique
+  email              String            @unique
+  password           String
+  firstName          String
+  lastName           String
+  profilePicture     Bytes?
+  registeredAt       DateTime?         @default(now())
+  skills             Skill[]
+  projects           ProjectToMember[]
+  contributions      ProjectItem[]
+  actions            Action[]
+  joinRequests       JoinRequest[]
+  isEmailValidated   Boolean?          @default(false)
+  validateEmailToken String?
+  resetPasswordToken String?
 }
 
-model ProjectItems {
-  id             Int      @id @default(autoincrement())
-  name           String
-  description    String?  @db.Text
-  link           String?
-  associatedFile Bytes?
-  author         Users    @relation(fields: [authorId], references: [id])
-  authorId       Int
-  project        Projects @relation(fields: [projectId], references: [id])
-  projectId      Int
+model Project {
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  slug             String            @unique
+  shortDescription String
+  description      String?           @db.Text
+  coverImage       Bytes?
+  public           Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  members          ProjectToMember[]
+  skills           Skill[]
+  items            ProjectItem[]
+  actions          Action[]
+  joinRequests     JoinRequest[]
 }
 
-model ProjectsToMembers {
-  project   Projects @relation(fields: [projectId], references: [id])
+model ProjectItem {
+  id               Int      @id @default(autoincrement())
+  name             String
+  shortDescription String
+  link             String?
+  associatedFile   Bytes?
+  createdAt        DateTime @default(now())
+  author           User     @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  authorId         Int
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  projectId        Int
+}
+
+model ProjectToMember {
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   projectId Int
-  user      Users    @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId    Int
   role      Role     @default(READER)
   addedAt   DateTime @default(now())
@@ -69,21 +82,85 @@ model ProjectsToMembers {
   @@id([projectId, userId])
 }
 
-model Actions {
+model Action {
+  id        Int      @id @default(autoincrement())
   name      String
-  createdAt DateTime @default(now())
-  project   Projects @relation(fields: [projectId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   projectId Int
-  user      Users    @relation(fields: [userId], references: [id])
+  author    User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId    Int
+  createdAt DateTime @default(now())
+}
+
+model JoinRequest {
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  projectId Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    Int
+  createdAt DateTime @default(now())
 
   @@id([projectId, userId])
 }
 
-enum Domain {
+enum DomainName {
+  UXUI_DESIGN
   DEVELOPMENT
-  DESIGN
-  MARKETING
+  GRAPHIC_DESIGN
+  WEBMARKETING
+  CYBERSECURITY
+  DATA
+  AUDIOVISUAL
+}
+
+enum SkillName {
+  // UXUI_DESIGN
+  USER_RESEARCH
+  WIREFRAMING
+  INTERACTIVE_PROTOTYPING
+  USER_CENTERED_DESIGN
+  INTERACTION_DESIGN
+
+  // DEVELOPMENT
+  WEB_DEVELOPMENT
+  MOBILE_DEVELOPMENT
+  FRONTEND_DEVELOPMENT
+  BACKEND_DEVELOPMENT
+  DATABASE_MANAGEMENT
+
+  // GRAPHIC_DESIGN
+  TYPOGRAPHY
+  BRAND_IDENTITY_DESIGN
+  ILLUSTRATION
+  LAYOUT_DESIGN
+  COLOR_THEORY
+
+  // WEBMARKETING
+  DIGITAL_STRATEGY
+  SEO_OPTIMIZATION
+  SOCIAL_MEDIA_MARKETING
+  CONTENT_MARKETING
+  ANALYTICS_TRACKING
+
+  // CYBERSECURITY
+  NETWORK_SECURITY
+  THREAT_ANALYSIS
+  INCIDENT_RESPONSE
+  VULNERABILITY_ASSESSMENT
+  CRYPTOGRAPHY
+
+  // DATA
+  DATA_ANALYSIS
+  DATA_VISUALIZATION
+  MACHINE_LEARNING
+  DATA_ENGINEERING
+  STATISTICAL_MODELING
+
+  // AUDIOVISUAL
+  VIDEO_EDITING
+  MOTION_GRAPHICS
+  SOUND_DESIGN
+  STORYBOARDING
+  CINEMATOGRAPHY
 }
 
 enum Role {

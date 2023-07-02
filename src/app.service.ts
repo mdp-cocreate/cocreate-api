@@ -1,11 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { PrismaService } from './prisma/prisma.service';
+import { handleError } from './utils/handleError';
+import { Domain, DomainName } from '@prisma/client';
 
 @Injectable()
 export class AppService {
-  constructor(private configService: ConfigService) {}
+  constructor(private prisma: PrismaService) {}
 
-  getHello(): string {
-    return `Hello world! ${this.configService.get<string>('FRONT_URL')}`;
+  async getDomains(): Promise<{
+    domains: Domain[];
+  }> {
+    try {
+      const domains = await this.prisma.domain.findMany();
+      return { domains };
+    } catch (e) {
+      throw handleError(e);
+    }
+  }
+
+  async getSkillsByDomains(domains: DomainName[] | undefined) {
+    const skills = await this.prisma.skill.findMany({
+      where: {
+        domain: {
+          name: {
+            in: domains,
+          },
+        },
+      },
+    });
+
+    return { skills };
   }
 }
