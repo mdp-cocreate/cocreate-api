@@ -27,6 +27,12 @@ export class UsersController {
     return await this.usersService.findAll();
   }
 
+  @Delete()
+  @UseGuards(AuthGuard('jwt'))
+  async deleteMyAccount(@Req() { user }: { user: UserWithoutSensitiveData }) {
+    return await this.usersService.deleteMyAccount(user.slug);
+  }
+
   @Get('current')
   @UseGuards(AuthGuard('jwt'))
   async getCurrentUserProfile(
@@ -66,11 +72,5 @@ export class UsersController {
     @Req() { user }: { user: UserWithoutSensitiveData }
   ): Promise<{ user: FormattedUserWithoutSensitiveData }> {
     return await this.usersService.updateMyAccount(updateUserDto, user.slug);
-  }
-
-  @Delete(':slug')
-  @UseGuards(AuthGuard('jwt'))
-  async deleteMyAccount(@Req() { user }: { user: UserWithoutSensitiveData }) {
-    return await this.usersService.deleteMyAccount(user.slug);
   }
 }
