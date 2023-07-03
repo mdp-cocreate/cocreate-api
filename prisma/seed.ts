@@ -141,6 +141,21 @@ async function seed() {
         isEmailValidated: true,
       },
     });
+    await prisma.user.create({
+      data: {
+        slug: 'not-validated',
+        email: 'not@validated.com',
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        password: await bcrypt.hash(process.env.ADMIN_PASSWORD!, 10),
+        firstName: 'Not',
+        lastName: 'Validated',
+        profilePicture: null,
+        skills: {
+          connect: [{ name: SkillName.DIGITAL_STRATEGY }],
+        },
+        isEmailValidated: false,
+      },
+    });
 
     // Projects
     await prisma.project.create({

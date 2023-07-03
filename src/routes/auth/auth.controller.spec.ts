@@ -51,7 +51,7 @@ describe('AuthController (e2e)', () => {
 
     it('should return 403 Forbidden when the email is not validated', async () => {
       const loginDto = {
-        email: 'john@doe.com',
+        email: 'not@validated.com',
         password: process.env.ADMIN_PASSWORD,
       };
 
